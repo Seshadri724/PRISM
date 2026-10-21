@@ -2,64 +2,367 @@
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PRISM · Agent Factory</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0e14;--panel:rgba(12,17,24,.8);--line:rgba(255,255,255,.09);--t:#e6edf3;--m:#8b98a9;--ok:#3fb950;--warn:#f59e0b;--bad:#f85149;--acc:#22d3ee}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--t);font:13px/1.4 'Space Grotesk',system-ui,sans-serif}
-canvas{display:block}
-.labels{position:fixed;inset:0;pointer-events:none}
-.panel{position:fixed;z-index:5;background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:12px 14px;transition:opacity .4s}
-h2{margin:0 0 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--m);font-weight:600}
-.mono{font-family:'JetBrains Mono',monospace}
-#top{top:16px;left:16px;right:16px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;right:auto;max-width:calc(100% - 32px)}
-.brand{font-weight:700;letter-spacing:.12em;display:flex;align-items:center;gap:8px;white-space:nowrap}
-.brand i{width:10px;height:10px;background:var(--acc);transform:rotate(45deg);box-shadow:0 0 12px var(--acc)}
-.sim{font:600 10px 'JetBrains Mono';color:var(--warn);border:1px solid currentColor;border-radius:99px;padding:1px 7px;letter-spacing:.08em}
-.kpis{display:flex;gap:18px;flex-wrap:wrap}
-.kpi b{display:block;font:600 17px 'JetBrains Mono';font-variant-numeric:tabular-nums}
-.kpi span{font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:.1em}
-#board{top:96px;right:16px;width:440px}
-table{width:100%;border-collapse:collapse;font:12px 'JetBrains Mono';font-variant-numeric:tabular-nums}
-th{font:600 9px 'Space Grotesk';text-transform:uppercase;letter-spacing:.1em;color:var(--m);text-align:right;padding:0 4px 6px}
-th:first-child,td:first-child{text-align:left}
-td{padding:6px 4px;text-align:right;border-top:1px solid var(--line)}
-tr.row{cursor:pointer}tr.row:hover td{background:rgba(255,255,255,.04)}
-tr.focus td{background:rgba(34,211,238,.08)}
-.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px;vertical-align:-1px}
-.hint{margin:8px 0 0;color:var(--m);font-size:11px}
-.good{color:var(--ok)}.meh{color:var(--warn)}.bad{color:var(--bad)}
-#inspect{top:96px;left:16px;width:320px}
-#inspect .x{float:right;cursor:pointer;color:var(--m);background:none;border:0;font-size:16px}
-#inspect .title{font-size:15px;font-weight:600;margin:4px 0 10px}
-#inspect .meta{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12px}
-#inspect .meta span{color:var(--m)}
-.tl{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
-.tl b{font:600 10px 'JetBrains Mono';padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.06)}
-.tl .p{color:var(--ok)}.tl .f{color:var(--bad);background:rgba(248,81,73,.12)}.tl .r{color:var(--warn)}
-.triage{margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);font-size:12px}
-#feed{left:16px;bottom:84px;width:380px}
-#events{list-style:none;margin:0;padding:0;font:11.5px 'JetBrains Mono';display:grid;gap:4px;max-height:190px;overflow:hidden}
-#events li{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:in .35s ease-out}
-@keyframes in{from{opacity:0;transform:translateX(-8px)}}
-#ctrl{left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;padding:8px 12px;max-width:calc(100% - 32px)}
-#ctrl .grp{display:flex;align-items:center;gap:6px;color:var(--m);font-size:11px;white-space:nowrap}
-button{font:600 12px 'Space Grotesk';color:var(--t);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
-button:hover{border-color:rgba(255,255,255,.25)}button.on{background:var(--acc);color:#05232a;border-color:var(--acc)}
-input[type=range]{accent-color:var(--acc);width:90px}
-input[type=number]{width:64px;font:12px 'JetBrains Mono';color:var(--t);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
-.lbl{font:600 11px 'JetBrains Mono';padding:3px 8px;border-radius:6px;background:rgba(10,14,20,.82);border:1px solid var(--line);text-align:center;white-space:nowrap;color:var(--t)}
-.lbl small{display:block;color:var(--m);font-weight:400;font-size:10px}
-.lbl.hot{border-color:var(--bad);box-shadow:0 0 14px rgba(248,81,73,.7)}
-.lbl.hot small{color:#ffb4ae}
-.zone{font:700 12px 'Space Grotesk';letter-spacing:.24em;color:rgba(255,255,255,.32);white-space:nowrap}
-.sim.live{color:var(--ok)}
-body.live #ctrl .simonly{display:none}
-input[type=text],input[type=password]{width:130px;font:12px 'JetBrains Mono',monospace;color:var(--t);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:6px;padding:5px 7px}
-#status{flex-basis:100%;text-align:center;color:var(--m);font:11px 'JetBrains Mono',monospace;min-height:14px}
-#inspect a{color:var(--acc)}
-body.clean #board,body.clean #feed,body.clean #inspect{opacity:0;pointer-events:none}
-@media(max-width:900px){#board{display:none}#feed{display:none}#inspect{width:calc(100% - 32px);top:auto;bottom:200px}#top{gap:10px}.kpi b{font-size:14px}}
+:root {
+  --bg: #0a0e14;
+  --panel: rgba(12, 17, 24, 0.82);
+  --line: rgba(255, 255, 255, 0.09);
+  --t: #e6edf3;
+  --m: #8b98a9;
+  --ok: #3fb950;
+  --warn: #f59e0b;
+  --bad: #f85149;
+  --acc: #22d3ee;
+  --hover: rgba(255, 255, 255, 0.05);
+}
+:root[data-theme=light] {
+  --bg: #f0f4f8;
+  --panel: rgba(255, 255, 255, 0.88);
+  --line: rgba(0, 0, 0, 0.1);
+  --t: #1f2328;
+  --m: #5a6370;
+  --ok: #1a7f37;
+  --warn: #9a6700;
+  --bad: #cf222e;
+  --acc: #0891b2;
+  --hover: rgba(0, 0, 0, 0.04);
+}
+@media(prefers-color-scheme: light) {
+  :root:not([data-theme=dark]) {
+    --bg: #f0f4f8;
+    --panel: rgba(255, 255, 255, 0.88);
+    --line: rgba(0, 0, 0, 0.1);
+    --t: #1f2328;
+    --m: #5a6370;
+    --ok: #1a7f37;
+    --warn: #9a6700;
+    --bad: #cf222e;
+    --acc: #0891b2;
+    --hover: rgba(0, 0, 0, 0.04);
+  }
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--t);
+  font: 13px/1.4 'Space Grotesk', system-ui, sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+canvas { display: block; }
+.labels { position: fixed; inset: 0; pointer-events: none; }
+.panel {
+  position: fixed;
+  z-index: 5;
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: opacity 0.4s, background 0.3s, border-color 0.3s;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+h2 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--m);
+  font-weight: 600;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* ── Top Bar ── */
+#top {
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  right: auto;
+  max-width: calc(100% - 32px);
+}
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.brand i {
+  width: 11px;
+  height: 11px;
+  background: var(--acc);
+  transform: rotate(45deg);
+  box-shadow: 0 0 14px var(--acc);
+  border-radius: 2px;
+}
+.sim {
+  font: 600 10px 'JetBrains Mono';
+  color: var(--warn);
+  border: 1px solid currentColor;
+  border-radius: 99px;
+  padding: 1px 7px;
+  letter-spacing: 0.08em;
+}
+.kpis { display: flex; gap: 16px; flex-wrap: wrap; }
+.kpi b { display: block; font: 600 16px 'JetBrains Mono'; font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 10px; color: var(--m); text-transform: uppercase; letter-spacing: 0.09em; }
+
+/* ── Leaderboard ── */
+#board {
+  top: 84px;
+  right: 16px;
+  width: 395px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 14px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 11px 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  table-layout: fixed;
+}
+th {
+  font: 600 8.5px 'Space Grotesk', system-ui;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--m);
+  text-align: right;
+  padding: 0 3px 6px;
+}
+th:first-child, td:first-child {
+  text-align: left;
+  width: 27%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+td {
+  padding: 5px 3px;
+  text-align: right;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+tr.row { cursor: pointer; }
+tr.row:hover td { background: var(--hover); }
+tr.focus td { background: rgba(34, 211, 238, 0.12); }
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2.5px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.hint { margin: 8px 0 0; color: var(--m); font-size: 10.5px; }
+.good { color: var(--ok); }
+.meh { color: var(--warn); }
+.bad { color: var(--bad); }
+
+/* ── Inspect Panel ── */
+#inspect { top: 84px; left: 16px; width: 320px; }
+#inspect .x {
+  float: right;
+  cursor: pointer;
+  color: var(--m);
+  background: none;
+  border: 0;
+  font-size: 16px;
+}
+#inspect .title { font-size: 14px; font-weight: 600; margin: 4px 0 10px; }
+#inspect .meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 12px; }
+#inspect .meta span { color: var(--m); }
+.tl { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.tl b { font: 600 10px 'JetBrains Mono'; padding: 2px 6px; border-radius: 5px; background: var(--hover); }
+.tl .p { color: var(--ok); }
+.tl .f { color: var(--bad); background: rgba(248, 81, 73, 0.12); }
+.tl .r { color: var(--warn); }
+.triage {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(248, 81, 73, 0.08);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  font-size: 12px;
+}
+
+/* ── Feed & Controls ── */
+#feed { left: 16px; bottom: 84px; width: 360px; }
+#events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font: 11px 'JetBrains Mono';
+  display: grid;
+  gap: 4px;
+  max-height: 180px;
+  overflow: hidden;
+}
+#events li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: in 0.35s ease-out; }
+@keyframes in { from { opacity: 0; transform: translateX(-8px); } }
+
+#ctrl {
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 8px 14px;
+  max-width: calc(100% - 32px);
+}
+#ctrl .grp { display: flex; align-items: center; gap: 6px; color: var(--m); font-size: 11px; white-space: nowrap; }
+button {
+  font: 600 12px 'Space Grotesk';
+  color: var(--t);
+  background: var(--hover);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+button:hover { border-color: rgba(255, 255, 255, 0.3); }
+button.on { background: var(--acc); color: #05232a; border-color: var(--acc); }
+input[type=range] { accent-color: var(--acc); width: 85px; }
+input[type=number] {
+  width: 60px;
+  font: 12px 'JetBrains Mono';
+  color: var(--t);
+  background: var(--hover);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+/* ── 3D Scene Labels & Badges ── */
+.lbl {
+  font: 600 10.5px 'JetBrains Mono';
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  text-align: center;
+  white-space: nowrap;
+  color: var(--t);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+.lbl small { display: block; color: var(--m); font-weight: 400; font-size: 9.5px; }
+.lbl.hot { border-color: var(--bad); box-shadow: 0 0 14px rgba(248, 81, 73, 0.7); }
+.lbl.hot small { color: #ffb4ae; }
+
+/* Compact Agent Nameplates — Prevents Collision */
+.agent-nameplate {
+  font: 600 10px 'JetBrains Mono', monospace;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--t);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  transition: border-color 0.2s;
+}
+.agent-nameplate .pdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.agent-nameplate .qbadge {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--hover);
+  color: var(--m);
+}
+.agent-nameplate .qbadge.has-q {
+  color: var(--acc);
+  background: rgba(34, 211, 238, 0.15);
+  font-weight: 700;
+}
+
+/* PRISM Sorter 3D Hologram Badge */
+.prism-badge {
+  font: 700 9.5px 'JetBrains Mono', monospace;
+  letter-spacing: 0.12em;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--panel);
+  border: 1px solid var(--acc);
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.4);
+  color: var(--acc);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.prism-badge small {
+  display: block;
+  font-size: 8px;
+  color: var(--m);
+  letter-spacing: 0.06em;
+  font-weight: 400;
+}
+
+.zone {
+  font: 700 11px 'Space Grotesk';
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+}
+:root[data-theme=light] .zone { color: rgba(0, 0, 0, 0.35); }
+
+.sim.live { color: var(--ok); }
+body.live #ctrl .simonly { display: none; }
+input[type=text], input[type=password] {
+  width: 125px;
+  font: 11.5px 'JetBrains Mono', monospace;
+  color: var(--t);
+  background: var(--hover);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 7px;
+}
+#status { flex-basis: 100%; text-align: center; color: var(--m); font: 11px 'JetBrains Mono', monospace; min-height: 14px; }
+#inspect a { color: var(--acc); }
+body.clean #board, body.clean #feed, body.clean #inspect { opacity: 0; pointer-events: none; }
+
+.theme-btn {
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--m);
+  cursor: pointer;
+  line-height: 1;
+}
+.theme-btn:hover { color: var(--t); border-color: var(--acc); }
+
+@media(max-width: 900px) {
+  #board { display: none; }
+  #feed { display: none; }
+  #inspect { width: calc(100% - 32px); top: auto; bottom: 200px; }
+  #top { gap: 10px; }
+  .kpi b { font-size: 14px; }
+}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 </head><body>
@@ -75,12 +378,16 @@ body.clean #board,body.clean #feed,body.clean #inspect{opacity:0;pointer-events:
     <div class="kpi"><b id="k-ship" class="good">0</b><span>Shipped</span></div>
     <div class="kpi"><b id="k-clock">0m</b><span id="l-clock">Sim time</span></div>
   </div>
+  <button class="theme-btn" id="theme-btn" title="Toggle Light / Dark mode">🌓</button>
 </div>
 
 <div id="board" class="panel">
   <h2>Agent leaderboard</h2>
-  <table><thead><tr><th>Agent</th><th>PRs</th><th>Break</th><th>Spend</th><th>Wasted</th><th>Review</th><th>Shipped</th></tr></thead><tbody id="rows"></tbody></table>
-  <p class="hint">Click an agent to spotlight its PRs · click a crate to inspect it</p>
+  <table>
+    <thead><tr><th style="width:28%">Agent</th><th style="width:10%">PRs</th><th style="width:12%">Break</th><th style="width:13%">Spend</th><th style="width:13%">Wasted</th><th style="width:11%">Review</th><th style="width:13%">Shipped</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p class="hint">Click an agent to spotlight · click a crate to inspect</p>
 </div>
 
 <div id="inspect" class="panel" hidden></div>
@@ -108,9 +415,14 @@ import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 
 const $=id=>document.getElementById(id), rnd=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.random()*a.length|0];
 
-// ================= data model =================
-// Sim scale: 1 real second = 1 CI minute. Every number below is made up; agent quality is shuffled each load
-// so the demo never implies a real ranking of products.
+// ================= Theme Management =================
+function isLight() {
+  const t = document.documentElement.dataset.theme;
+  if (t) return t === 'light';
+  return window.matchMedia('(prefers-color-scheme: light)').matches;
+}
+
+// ================= Data Model =================
 const SIM_STAGES=[
   {n:'Lint',     x:-15, d:1.2, runners:1, color:0x38bdf8},
   {n:'Test',     x:-8,  d:3.0, runners:8, color:0xf59e0b},
@@ -119,8 +431,6 @@ const SIM_STAGES=[
   {n:'Review',   x:11,  review:true,      color:0xfbbf24},
   {n:'Deploy',   x:18,  d:2.0, runners:1, color:0x22c55e},
 ];
-// Live mode: GitHub only tells us "CI run", "waiting for review", "merged", so that's all the factory shows.
-// Review and the last station keep the same x as the sim so pads, desks and the merge spot line up.
 const LIVE_STAGES=[
   {n:'CI',     x:-8, runners:1, color:0xf59e0b},
   {n:'Review', x:11, review:true, color:0xfbbf24},
@@ -130,15 +440,23 @@ let STAGES=[];
 const BASE_FAIL=[.05,.12,.05,.03,.14,.02];
 const quality=[.55,.8,1,1.2,1.45,1.8,1].sort(()=>Math.random()-.5);
 const blank=()=>({prs:0,runs:0,fails:0,rejected:0,shipped:0,min:0,wasted:0,waitSum:0,waitN:0});
+
 const AGENTS=[
-  {name:'Claude Code',  color:0xd97757, rate:.075},
-  {name:'Copilot Agent',color:0x8b5cf6, rate:.085},
-  {name:'Codex',        color:0x10b981, rate:.08},
-  {name:'Cursor',       color:0xec4899, rate:.065},
-  {name:'Devin',        color:0x3b82f6, rate:.04},
-  {name:'Humans',       color:0xcbd5e1, rate:.03},
-  {name:'Bots',         color:0x64748b, rate:0, liveOnly:true}, // dependabot, renovate… only appears in live mode
-].map((a,i,all)=>({...a,z:(i-(all.length-1)/2)*3.3,fail:BASE_FAIL.map(f=>Math.min(.6,f*quality[i])),hex:'#'+a.color.toString(16).padStart(6,'0'),s:blank()}));
+  {name:'Claude Code',  short:'Claude',  color:0xd97757, rate:.075},
+  {name:'Copilot Agent',short:'Copilot', color:0x8b5cf6, rate:.085},
+  {name:'Codex',        short:'Codex',   color:0x10b981, rate:.08},
+  {name:'Cursor',       short:'Cursor',  color:0xec4899, rate:.065},
+  {name:'Devin',        short:'Devin',   color:0x3b82f6, rate:.04},
+  {name:'Humans',       short:'Humans',  color:0xcbd5e1, rate:.03},
+  {name:'Bots',         short:'Bots',    color:0x64748b, rate:0, liveOnly:true},
+].map((a,i,all)=>({
+  ...a,
+  z:(i-(all.length-1)/2)*3.8, // 3.8 unit spacing avoids label and robot collisions
+  fail:BASE_FAIL.map(f=>Math.min(.6,f*quality[i])),
+  hex:'#'+a.color.toString(16).padStart(6,'0'),
+  s:blank()
+}));
+
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const REASONS={
@@ -149,30 +467,40 @@ const REASONS={
   Review:['Changes requested: missing tests','Changes requested: wrong approach','Changes requested: PR too large, split it'],
   Deploy:['Health check failed after rollout','Migration lock timeout'],
 };
-const FIX={Lint:'Run the formatter + linter autofix locally before pushing.',Test:'Re-run failing spec; if it passes, quarantine as flaky.',
-  Build:'Regenerate types and verify import paths.',Security:'Bump the dependency or rotate the leaked secret.',
-  Review:'Address reviewer comments; add tests for new paths.',Deploy:'Roll back, check readiness probe and migrations.'};
+const FIX={Lint:'Run formatter + linter autofix locally.',Test:'Re-run spec; quarantine if flaky.',
+  Build:'Regenerate types and check imports.',Security:'Bump dependency or rotate secret.',
+  Review:'Address reviewer comments; add test coverage.',Deploy:'Roll back, check readiness probes.'};
 const TITLES=['Add rate limiting to /api/login','Fix N+1 in orders query','Migrate to Node 24','Cache sessions in Redis','Add dark mode toggle',
   'Refactor billing service','Bump dependencies','Fix flaky date test','Add OpenTelemetry tracing','Paginate admin users table','Remove dead feature flags',
   'Add retry to webhook sender','Upgrade React to 19.2','Fix timezone bug in reports','Add CSV export','Harden CSP headers','Speed up CI cache'];
 
-const GAP=1.3, BELT_V=4, ENTRY=-21.3, BX0=-22.5, BX1=26.5, BY=1.41, MERGE=12.8, CAP=80;
+// Factory layout coordinates
+const PRISM_X = -20.5; // PRISM sorter position
+const ENTRY = -19.2;   // CI conveyor belt start
+const BX0 = -18.5, BX1 = 25.5, BY = 1.41, MERGE = 12.8, GAP = 1.3, BELT_V = 4, CAP = 80;
 let crates=[], reviewers=[], prSeq=100, simT=0, speed=1, volume=1, focus=null, selected=null, rate=.008, mode='sim', liveEpoch=0;
 const liveMap=new Map();
-const now=()=>mode==='live'?Date.now()/6e4:simT; // minutes; sim runs 1 real second = 1 CI minute
+const now=()=>mode==='live'?Date.now()/6e4:simT;
 
-// ================= scene =================
+// ================= Scene Setup =================
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.toneMapping=THREE.ACESFilmicToneMapping;
 document.body.prepend(renderer.domElement);
 const labelR=new CSS2DRenderer(); labelR.setSize(innerWidth,innerHeight); labelR.domElement.className='labels'; document.body.appendChild(labelR.domElement);
 
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0a0e14); scene.fog=new THREE.Fog(0x0a0e14,70,140);
-const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,400);
-const HOME=[new THREE.Vector3(-3,25,29),new THREE.Vector3(0,0,-1)];
-const homeCam=()=>{const k=Math.max(1,1.7/camera.aspect);camera.position.copy(HOME[0]).sub(HOME[1]).multiplyScalar(k).add(HOME[1])};
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,400);
+
+// Reframed camera: pulled back for comfortable margins, centers factory and keeps leaderboard clear
+const HOME=[new THREE.Vector3(-5, 30, 39), new THREE.Vector3(-1, 0, 0)];
+const homeCam=()=>{
+  const k=Math.max(1, 1.78/camera.aspect);
+  camera.position.copy(HOME[0]).sub(HOME[1]).multiplyScalar(k).add(HOME[1]);
+  camera.lookAt(HOME[1]);
+};
 homeCam();
+
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.target.copy(HOME[1]); controls.enableDamping=true; controls.maxPolarAngle=1.38; controls.minDistance=10; controls.maxDistance=110; controls.autoRotateSpeed=.5;
 
@@ -181,7 +509,7 @@ composer.addPass(new RenderPass(scene,camera));
 const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.55,.4,.85); composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
-scene.add(new THREE.HemisphereLight(0xa9bbdd,0x1a2230,1.6));
+const hemi=new THREE.HemisphereLight(0xa9bbdd,0x1a2230,1.6); scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffffff,2.4); sun.position.set(-20,40,25); sun.castShadow=true;
 Object.assign(sun.shadow.camera,{left:-45,right:45,top:30,bottom:-30,far:120}); sun.shadow.mapSize.set(2048,2048); scene.add(sun);
 
@@ -190,432 +518,879 @@ const glow=(color,i=2)=>new THREE.MeshStandardMaterial({color,emissive:color,emi
 const box=(w,h,d,mat,x=0,y=0,z=0,parent=scene)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;parent.add(m);return m};
 const label=(html,cls,x,y,z,parent=scene)=>{const el=document.createElement('div');el.className=cls;el.innerHTML=html;const o=new CSS2DObject(el);o.position.set(x,y,z);parent.add(o);el._o=o;return el};
 
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),std(0x131a24,{roughness:.95,metalness:0}));
+// Subdued, focused floor (low contrast grid so conveyor and crates pop)
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(160,120),std(0x0e131b,{roughness:.95,metalness:.05}));
 floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
-const grid=new THREE.GridHelper(200,100,0x1b2531,0x141c26); grid.position.y=.01; scene.add(grid);
+let grid=new THREE.GridHelper(160,80,0x141b24,0x0f151d); grid.position.y=.01; scene.add(grid);
 
-function pad(x,z,w,d,color,name,lx=x,lz=z+d/2-.6){
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.07}));
+// Modular pads with sleek perimeter trims
+function pad(x,z,w,d,color,name,lx=x,lz=z+d/2-.5){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.06}));
   m.rotation.x=-Math.PI/2; m.position.set(x,.02,z); scene.add(m);
-  const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w,d)),new THREE.LineBasicMaterial({color,transparent:true,opacity:.5}));
+  const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w,d)),new THREE.LineBasicMaterial({color,transparent:true,opacity:.4}));
   e.rotation.x=-Math.PI/2; e.position.set(x,.03,z); scene.add(e);
   label(name,'zone',lx,.1,lz);
 }
-pad(-28.5,0,7,21,0x38bdf8,'AGENT DOCK',-28.5,11);
-pad(11.5,-7.6,10,9,0xfbbf24,'HUMAN REVIEW',11.5,-12.6);
-pad(-4.5,6.6,11,5,0xf85149,'REPAIR BAY',-4.5,9.6);
-pad(31,0,6,10,0x3fb950,'SHIPPED',31,5.6);
 
-// conveyor belt with scrolling surface + glowing rails
-const BL=BX1-BX0, BCX=(BX0+BX1)/2;
-box(BL,.9,2,std(0x161d27,{metalness:.5}),BCX,.45,0);
-const cv=document.createElement('canvas'); cv.width=cv.height=64; const g=cv.getContext('2d');
-g.fillStyle='#1b232e'; g.fillRect(0,0,64,64); g.fillStyle='#283444'; g.fillRect(0,0,8,64);
-const beltTex=new THREE.CanvasTexture(cv); beltTex.wrapS=beltTex.wrapT=THREE.RepeatWrapping; beltTex.repeat.set(BL/1.2,1); beltTex.colorSpace=THREE.SRGBColorSpace;
-const top=new THREE.Mesh(new THREE.PlaneGeometry(BL,1.8),std(0xffffff,{map:beltTex,roughness:.8}));
-top.rotation.x=-Math.PI/2; top.position.set(BCX,.905,0); top.receiveShadow=true; scene.add(top);
-for(const z of [-1.05,1.05]) box(BL,.08,.08,glow(0x22d3ee,.45),BCX,.96,z);
+// Compact, well-proportioned bays (scaled down from oversized rectangles)
+pad(-29.2, 0, 5.5, 25, 0x38bdf8, 'AGENT DOCK', -29.2, 13.2);
+pad(11.5, -6.8, 8.5, 4.6, 0xfbbf24, 'HUMAN REVIEW', 11.5, -9.4);
+pad(-4.5, 6.2, 8.5, 4.2, 0xf85149, 'REPAIR BAY', -4.5, 8.6);
+pad(27.5, 0, 5.5, 7.5, 0x3fb950, 'SHIPPED', 27.5, 4.3);
 
-// stations (rebuilt when the stage set changes between demo and live)
-function setStages(list){
-  STAGES.forEach(S=>{S.lbl._o.removeFromParent(); S.grp.removeFromParent()}); // label first, so its DOM element goes too
-  STAGES=list.map(S=>({...S})); STAGES.forEach(buildStation);
-}
-function buildStation(S){
-  const grp=new THREE.Group(); grp.position.x=S.x; scene.add(grp); S.grp=grp;
-  const metal=std(0x4a5668,{metalness:.5,roughness:.4});
-  box(.4,3.4,.4,metal,0,1.7,-1.5,grp); box(.4,3.4,.4,metal,0,1.7,1.5,grp);
-  box(.7,.5,3.6,metal,0,3.5,0,grp);
-  box(.72,.1,3.62,glow(S.color,1.2),0,3.3,0,grp);
-  S.lampMat=glow(S.color,.4); const lamp=new THREE.Mesh(new THREE.SphereGeometry(.3,16,12),S.lampMat); lamp.position.y=4; grp.add(lamp);
-  S.scanMat=new THREE.MeshBasicMaterial({color:S.color,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
-  const scan=new THREE.Mesh(new THREE.BoxGeometry(.06,2.2,2.6),S.scanMat); scan.position.y=2.1; grp.add(scan);
-  S.flash=0; S.flashColor=new THREE.Color();
-  S.lbl=label('','lbl',0,4.9,0,grp);
-}
+// ================= PRISM Sorter (Signature Feature) =================
+// The PRISM crystal that sorts incoming crates and splits them onto color-coded lanes
+const prismGroup = new THREE.Group();
+prismGroup.position.set(PRISM_X, 0, 0);
+scene.add(prismGroup);
 
-// agent robots
-AGENTS.forEach((a,i)=>{
-  const r=new THREE.Group(); r.position.set(-30.8,0,a.z); r.rotation.y=Math.PI/2; scene.add(r); a.robot=r;
-  const ring=new THREE.Mesh(new THREE.RingGeometry(1,1.15,40),new THREE.MeshBasicMaterial({color:a.color,transparent:true,opacity:.7}));
-  ring.rotation.x=-Math.PI/2; ring.position.y=.03; r.add(ring);
-  a.body=new THREE.Group(); r.add(a.body);
-  const shell=new THREE.Mesh(new THREE.CapsuleGeometry(.55,.7,6,16),std(0x2a3240,{metalness:.7,roughness:.3})); shell.position.y=1; shell.castShadow=true; a.body.add(shell);
-  box(.95,.62,.75,std(0x323b4a,{metalness:.6,roughness:.3}),0,1.95,0,a.body);
-  a.visor=glow(a.color,2.2); box(.72,.2,.05,a.visor,0,1.98,.39,a.body);
-  box(.06,.4,.06,std(0x5b6678),0,2.45,0,a.body);
-  const ant=new THREE.Mesh(new THREE.SphereGeometry(.12,12,8),a.visor); ant.position.y=2.7; a.body.add(ant);
-  a.lbl=label('','lbl',-30.8,3.6,a.z);
+// Hexagonal base pedestal
+const prismBase = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.5, 0.45, 8), std(0x1a2332, {metalness: 0.8, roughness: 0.3}));
+prismBase.position.y = 0.22; prismBase.receiveShadow = true; prismGroup.add(prismBase);
+const prismRing = new THREE.Mesh(new THREE.TorusGeometry(2.1, 0.05, 8, 32), glow(0x22d3ee, 1.2));
+prismRing.rotation.x = Math.PI / 2; prismRing.position.y = 0.46; prismGroup.add(prismRing);
+
+// 3D Glass Triangular Prism Crystal
+const prismGeo = new THREE.CylinderGeometry(1.5, 1.5, 2.5, 3);
+const prismMat = new THREE.MeshPhysicalMaterial({
+  color: 0xe0f7ff,
+  emissive: 0x22d3ee,
+  emissiveIntensity: 0.35,
+  roughness: 0.08,
+  metalness: 0.1,
+  transmission: 0.88,
+  ior: 1.55,
+  thickness: 1.5,
+  transparent: true,
+  opacity: 0.92
+});
+const prismCrystal = new THREE.Mesh(prismGeo, prismMat);
+prismCrystal.position.y = 2.1;
+prismCrystal.rotation.y = Math.PI / 6; // Points vertex toward incoming crates
+prismGroup.add(prismCrystal);
+
+// Prismatic faceted edge glow
+const prismEdges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(prismGeo),
+  new THREE.LineBasicMaterial({color: 0x22d3ee, transparent: true, opacity: 0.85})
+);
+prismEdges.position.copy(prismCrystal.position);
+prismEdges.rotation.copy(prismCrystal.rotation);
+prismGroup.add(prismEdges);
+
+// Floating Diamond Beacon atop the PRISM
+const diamondBeacon = new THREE.Mesh(new THREE.OctahedronGeometry(0.32), glow(0x22d3ee, 2.0));
+diamondBeacon.position.y = 3.9;
+prismGroup.add(diamondBeacon);
+
+// PRISM Sorter 3D Holographic Label
+label('<div class="prism-badge">◆ PRISM SORTER<small>DETECTION &amp; ROUTING</small></div>', 'lbl', PRISM_X, 4.6, 0);
+
+// Incoming white laser beam hitting the PRISM
+const inBeamGeo = new THREE.CylinderGeometry(0.04, 0.04, 5.5, 8);
+const inBeamMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.8});
+const inBeam = new THREE.Mesh(inBeamGeo, inBeamMat);
+inBeam.rotation.z = Math.PI / 2;
+inBeam.position.set(-2.8, 2.1, 0);
+prismGroup.add(inBeam);
+
+// Outgoing Spectral Dispersion Light Rays (Splitting into agent colors!)
+const spectralRays = [];
+AGENTS.slice(0, 6).forEach((a, i) => {
+  const angle = ((i - 2.5) / 2.5) * 0.45; // Fan out angle
+  const rayLen = 4.2;
+  const rayGeo = new THREE.CylinderGeometry(0.035, 0.035, rayLen, 6);
+  const rayMat = new THREE.MeshBasicMaterial({color: a.color, transparent: true, opacity: 0.75});
+  const ray = new THREE.Mesh(rayGeo, rayMat);
+  ray.rotation.z = Math.PI / 2;
+  ray.rotation.y = angle;
+  ray.position.set(rayLen / 2 + 0.2, 2.1, Math.sin(angle) * (rayLen / 2));
+  prismGroup.add(ray);
+  spectralRays.push(ray);
+
+  // Color-coded sorting guide lines on the floor leading into CI
+  const laneGeo = new THREE.PlaneGeometry(4.2, 0.08);
+  const laneMat = new THREE.MeshBasicMaterial({color: a.color, transparent: true, opacity: 0.35});
+  const lane = new THREE.Mesh(laneGeo, laneMat);
+  lane.rotation.x = -Math.PI / 2;
+  lane.rotation.z = -angle * 0.4;
+  lane.position.set(PRISM_X + 2.2, 0.04, (i - 2.5) * 0.42);
+  scene.add(lane);
 });
 
-// human reviewers
-const deskMat=std(0x3a3226,{roughness:.8}), personMat=std(0x94a3b8);
+// Feeder tracks from each agent robot to PRISM Sorter inlet
+AGENTS.forEach(a => {
+  const pts = [
+    new THREE.Vector3(-28.5, 0.03, a.z),
+    new THREE.Vector3(-23.5, 0.03, a.z * 0.5),
+    new THREE.Vector3(PRISM_X - 1.6, 0.03, 0)
+  ];
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(24));
+  const lineMat = new THREE.LineBasicMaterial({color: a.color, transparent: true, opacity: 0.28});
+  scene.add(new THREE.Line(lineGeo, lineMat));
+});
+
+// Connecting divert track from CI stages down to Repair Bay
+{
+  const pts = [
+    new THREE.Vector3(-8, 0.04, 0),
+    new THREE.Vector3(-6, 0.04, 3.0),
+    new THREE.Vector3(-4.5, 0.04, 6.2)
+  ];
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(24)), new THREE.LineBasicMaterial({color: 0xf85149, transparent: true, opacity: 0.4}));
+  scene.add(line);
+}
+// Connecting spur to Human Review
+{
+  const pts = [
+    new THREE.Vector3(11, 0.04, 0),
+    new THREE.Vector3(11, 0.04, -3.5),
+    new THREE.Vector3(11.5, 0.04, -6.8)
+  ];
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(24)), new THREE.LineBasicMaterial({color: 0xfbbf24, transparent: true, opacity: 0.4}));
+  scene.add(line);
+}
+
+// Repair Bay Diagnostic Gantry & Hazard Alarm Beacon
+const repairGantry = new THREE.Group();
+repairGantry.position.set(-4.5, 0, 6.2);
+scene.add(repairGantry);
+box(0.2, 3.2, 0.2, std(0x323b4a), -4, 1.6, 0, repairGantry);
+box(0.2, 3.2, 0.2, std(0x323b4a),  4, 1.6, 0, repairGantry);
+box(8.2, 0.2, 0.3, std(0x323b4a),  0, 3.2, 0, repairGantry);
+const repairBeaconMat = glow(0xf85149, 0.4);
+const repairBeacon = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 10), repairBeaconMat);
+repairBeacon.position.set(0, 3.5, 0);
+repairGantry.add(repairBeacon);
+let repairBayFlash = 0;
+
+// ================= Main Conveyor Belt =================
+const BL = BX1 - BX0, BCX = (BX0 + BX1) / 2;
+box(BL, 0.9, 1.8, std(0x161d27, {metalness: 0.5}), BCX, 0.45, 0);
+const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d');
+g.fillStyle = '#1b232e'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#283444'; g.fillRect(0, 0, 8, 64);
+const beltTex = new THREE.CanvasTexture(cv); beltTex.wrapS = beltTex.wrapT = THREE.RepeatWrapping; beltTex.repeat.set(BL / 1.2, 1); beltTex.colorSpace = THREE.SRGBColorSpace;
+const topBelt = new THREE.Mesh(new THREE.PlaneGeometry(BL, 1.6), std(0xffffff, {map: beltTex, roughness: 0.8}));
+topBelt.rotation.x = -Math.PI / 2; topBelt.position.set(BCX, 0.905, 0); topBelt.receiveShadow = true; scene.add(topBelt);
+for (const z of [-0.95, 0.95]) box(BL, 0.08, 0.08, glow(0x22d3ee, 0.45), BCX, 0.96, z);
+
+// Stages (rebuilt when stage set changes)
+function setStages(list){
+  STAGES.forEach(S => { S.lbl._o.removeFromParent(); S.grp.removeFromParent(); });
+  STAGES = list.map(S => ({...S})); STAGES.forEach(buildStation);
+}
+function buildStation(S){
+  const grp = new THREE.Group(); grp.position.x = S.x; scene.add(grp); S.grp = grp;
+  const metal = std(0x4a5668, {metalness: 0.5, roughness: 0.4});
+  box(0.35, 3.3, 0.35, metal, 0, 1.65, -1.35, grp);
+  box(0.35, 3.3, 0.35, metal, 0, 1.65,  1.35, grp);
+  box(0.65, 0.45, 3.2, metal, 0, 3.4, 0, grp);
+  box(0.67, 0.09, 3.22, glow(S.color, 1.2), 0, 3.2, 0, grp);
+  S.lampMat = glow(S.color, 0.4);
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), S.lampMat);
+  lamp.position.y = 3.9; grp.add(lamp);
+  S.scanMat = new THREE.MeshBasicMaterial({color: S.color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false});
+  const scan = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.1, 2.4), S.scanMat);
+  scan.position.y = 2.05; grp.add(scan);
+  S.flash = 0; S.flashColor = new THREE.Color();
+  S.lbl = label('', 'lbl', 0, 4.8, 0, grp);
+}
+
+// Agent Robots & Compact Nameplates (Eliminates overlap)
+AGENTS.forEach((a, i) => {
+  const r = new THREE.Group(); r.position.set(-30.2, 0, a.z); r.rotation.y = Math.PI / 2; scene.add(r); a.robot = r;
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.05, 32), new THREE.MeshBasicMaterial({color: a.color, transparent: true, opacity: 0.7}));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.03; r.add(ring);
+  a.body = new THREE.Group(); r.add(a.body);
+  const shell = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 0.65, 6, 16), std(0x2a3240, {metalness: 0.7, roughness: 0.3}));
+  shell.position.y = 0.95; shell.castShadow = true; a.body.add(shell);
+  box(0.9, 0.58, 0.7, std(0x323b4a, {metalness: 0.6, roughness: 0.3}), 0, 1.85, 0, a.body);
+  a.visor = glow(a.color, 2.2);
+  box(0.68, 0.18, 0.05, a.visor, 0, 1.88, 0.36, a.body);
+  box(0.06, 0.35, 0.06, std(0x5b6678), 0, 2.35, 0, a.body);
+  const ant = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 8), a.visor);
+  ant.position.y = 2.58; a.body.add(ant);
+
+  // Compact Single-line Nameplate mounted directly over robot
+  a.lbl = label(
+    `<span class="pdot" style="background:${a.hex}"></span>${a.short} <span class="qbadge">0</span>`,
+    'agent-nameplate',
+    -30.2, 3.2, a.z
+  );
+});
+
+// Human Reviewers
+const deskMat = std(0x3a3226, {roughness: 0.8}), personMat = std(0x94a3b8);
 function addReviewer(){
-  const i=reviewers.length, x=7.6+i*2.05, g=new THREE.Group(); g.position.set(x,0,-10.4); scene.add(g);
-  box(1.5,.8,.9,deskMat,0,.4,0,g);
-  const body=new THREE.Mesh(new THREE.CylinderGeometry(.3,.4,1.1,14),personMat); body.position.set(0,.55,-1); body.castShadow=true; g.add(body);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.26,16,12),std(0xe2e8f0)); head.position.set(0,1.35,-1); g.add(head);
-  const haloMat=new THREE.MeshBasicMaterial({color:0xfbbf24,transparent:true,opacity:0});
-  const halo=new THREE.Mesh(new THREE.TorusGeometry(.32,.04,8,24),haloMat); halo.rotation.x=Math.PI/2; halo.position.set(0,1.78,-1); g.add(halo);
-  reviewers.push({g,haloMat,x,c:null,t:0});
+  const i = reviewers.length, x = 8.5 + i * 2.1, g = new THREE.Group(); g.position.set(x, 0, -6.8); scene.add(g);
+  box(1.4, 0.75, 0.85, deskMat, 0, 0.38, 0, g);
+  // Terminal monitor
+  box(0.5, 0.35, 0.05, glow(0x22d3ee, 0.8), 0, 0.95, -0.15, g);
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.36, 1.0, 12), personMat);
+  body.position.set(0, 0.5, -0.6); body.castShadow = true; g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), std(0xe2e8f0));
+  head.position.set(0, 1.25, -0.6); g.add(head);
+  const haloMat = new THREE.MeshBasicMaterial({color: 0xfbbf24, transparent: true, opacity: 0});
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.04, 8, 24), haloMat);
+  halo.rotation.x = Math.PI / 2; halo.position.set(0, 1.65, -0.6); g.add(halo);
+  reviewers.push({g, haloMat, x, c: null, t: 0});
 }
 function removeReviewer(){
-  const r=reviewers.at(-1); if(!r||r.c) return false; // never fire someone mid-review
+  const r = reviewers.at(-1); if (!r || r.c) return false;
   scene.remove(r.g); reviewers.pop(); return true;
 }
 addReviewer(); addReviewer();
 
-// particles (sparks, bursts, smoke)
-const PN=2400, pPos=new Float32Array(PN*3).fill(-999), pCol=new Float32Array(PN*3), pVel=new Float32Array(PN*3), pLife=new Float32Array(PN), pGrav=new Float32Array(PN);
-const pGeo=new THREE.BufferGeometry(); pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3)); pGeo.setAttribute('color',new THREE.BufferAttribute(pCol,3));
-scene.add(new THREE.Points(pGeo,new THREE.PointsMaterial({size:.22,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false})));
-let pI=0; const _c=new THREE.Color();
-function emit(x,y,z,color,n,sp=3,up=3,grav=-9,life=1){
+// Particles (sparks, bursts, flares)
+const PN = 2400, pPos = new Float32Array(PN * 3).fill(-999), pCol = new Float32Array(PN * 3), pVel = new Float32Array(PN * 3), pLife = new Float32Array(PN), pGrav = new Float32Array(PN);
+const pGeo = new THREE.BufferGeometry(); pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3)); pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({size: 0.22, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false})));
+let pI = 0; const _c = new THREE.Color();
+function emit(x, y, z, color, n, sp = 3, up = 3, grav = -9, life = 1){
   _c.set(color);
-  for(let k=0;k<n;k++){const i=pI++%PN;
-    pPos.set([x,y,z],i*3); pVel.set([rnd(-sp,sp),rnd(.3,1)*up,rnd(-sp,sp)],i*3); pCol.set([_c.r,_c.g,_c.b],i*3);
-    pLife[i]=rnd(.5,1)*life; pGrav[i]=grav;}
+  for (let k = 0; k < n; k++){
+    const i = pI++ % PN;
+    pPos.set([x, y, z], i * 3);
+    pVel.set([rnd(-sp, sp), rnd(0.3, 1) * up, rnd(-sp, sp)], i * 3);
+    pCol.set([_c.r, _c.g, _c.b], i * 3);
+    pLife[i] = rnd(0.5, 1) * life;
+    pGrav[i] = grav;
+  }
 }
 function updateParticles(dt){
-  for(let i=0;i<PN;i++){ if(pLife[i]<=0) continue;
-    if((pLife[i]-=dt)<=0){pPos[i*3+1]=-999;continue}
-    pVel[i*3+1]+=pGrav[i]*dt; for(let k=0;k<3;k++) pPos[i*3+k]+=pVel[i*3+k]*dt;
-    if(pPos[i*3+1]<.05){pPos[i*3+1]=.05;pVel[i*3+1]*=-.3}}
-  pGeo.attributes.position.needsUpdate=pGeo.attributes.color.needsUpdate=true;
+  for (let i = 0; i < PN; i++){
+    if (pLife[i] <= 0) continue;
+    if ((pLife[i] -= dt) <= 0){ pPos[i * 3 + 1] = -999; continue; }
+    pVel[i * 3 + 1] += pGrav[i] * dt;
+    for (let k = 0; k < 3; k++) pPos[i * 3 + k] += pVel[i * 3 + k] * dt;
+    if (pPos[i * 3 + 1] < 0.05){ pPos[i * 3 + 1] = 0.05; pVel[i * 3 + 1] *= -0.3; }
+  }
+  pGeo.attributes.position.needsUpdate = pGeo.attributes.color.needsUpdate = true;
 }
 
-// crates
-const crateGeo=new THREE.BoxGeometry(.9,.9,.9), tapeGeo=new THREE.BoxGeometry(.92,.14,.92), tapeMat=std(0x0b0f14,{roughness:.9});
-const selBox=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.2,1.2,1.2)),new THREE.LineBasicMaterial({color:0xffffff}));
-const pickables=[];
-function mk(a,id,title){ // one crate = one PR; the view only reads its fields, sim or live source writes them
-  const mat=std(a.color,{emissive:a.color,emissiveIntensity:.12,transparent:true});
-  const m=new THREE.Mesh(crateGeo,mat); m.castShadow=true; m.add(new THREE.Mesh(tapeGeo,tapeMat));
-  m.position.set(-29.6,2.2,a.z); scene.add(m);
-  const c={id,agent:a,title,state:'queued',x:0,stage:0,tries:1,ciMin:0,runMin:0,hist:[],t:0,mesh:m,mat,fade:1};
-  m.userData.c=c; pickables.push(m); crates.push(c); return c;
-}
-function spawn(a){ const c=mk(a,++prSeq,pick(TITLES)); a.s.prs++; a.pulse=.5; return c; }
+// ================= Crates With Story (PR #, agent stripe, status light) =================
+const crateGeo = new THREE.BoxGeometry(0.88, 0.88, 0.88);
+const selBox = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.15, 1.15, 1.15)), new THREE.LineBasicMaterial({color: 0xffffff}));
+const pickables = [];
 
-// ================= simulation =================
-const events=[];
-function ev(html,cls=''){events.unshift(`<li class="${cls}">${html}</li>`);events.length=8;$('events').innerHTML=events.join('')}
-const tag=c=>`<span style="color:${c.agent.hex}">#${c.id}</span>`;
-const onBelt=c=>c.state==='belt'||c.state==='proc';
+// Dynamic texture generator for crate faces
+function makeCrateTexture(agent, id){
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 128;
+  const ctx = cv.getContext('2d');
+  const light = isLight();
 
-function fail(c,S,reason){
-  const s=c.agent.s; c.state='failed'; c.t=rnd(4,7); c.reason=reason; c.failStage=S.n; c.hist.push([S.n,0]);
-  S.review?s.rejected++:s.fails++; s.wasted+=c.runMin;
-  S.flash=.5; S.flashColor.set(0xf85149);
-  const p=c.mesh.position; emit(p.x,p.y+.5,p.z,0xf85149,40,2.5,5);
-  ev(S.review?`✋ ${tag(c)} changes requested — ${reason.replace('Changes requested: ','')}`:`✕ ${tag(c)} ${S.n} · ${reason}`,'bad');
+  // Dark metallic or light composite body
+  ctx.fillStyle = light ? '#f1f5f9' : '#111722';
+  ctx.fillRect(0, 0, 128, 128);
+
+  // Industrial border
+  ctx.strokeStyle = light ? '#cbd5e1' : '#222d3d';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, 122, 122);
+
+  // Bold Agent Racing Stripe
+  ctx.fillStyle = agent.hex;
+  ctx.fillRect(0, 46, 128, 36);
+
+  // Stripe trim
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(0, 46, 128, 4);
+  ctx.fillRect(0, 78, 128, 4);
+
+  // Crisp PR Number Stencil
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('#' + id, 64, 64);
+
+  // Agent Short Tag
+  ctx.font = 'bold 10px "Space Grotesk", sans-serif';
+  ctx.fillStyle = agent.hex;
+  ctx.fillText(agent.short.toUpperCase(), 64, 24);
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }
+
+function mk(a, id, title){
+  const tex = makeCrateTexture(a, id);
+  const mat = std(0xffffff, {map: tex, roughness: 0.5, metalness: 0.15, transparent: true});
+  const m = new THREE.Mesh(crateGeo, mat);
+  m.castShadow = true;
+
+  // Tiny 3D Status Light Beacon on Top of Crate
+  const beaconBase = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.06, 12), std(0x222d3d, {metalness: 0.8}));
+  beaconBase.position.y = 0.47;
+  m.add(beaconBase);
+
+  const beaconMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    emissive: a.color,
+    emissiveIntensity: 0.8,
+    roughness: 0.2
+  });
+  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.085, 12, 8), beaconMat);
+  beacon.position.y = 0.53;
+  m.add(beacon);
+
+  m.position.set(-29.2, 2.2, a.z);
+  scene.add(m);
+
+  const c = {id, agent: a, title, state: 'queued', x: 0, stage: 0, tries: 1, ciMin: 0, runMin: 0, hist: [], t: 0, mesh: m, mat, beaconMat, tex, fade: 1};
+  m.userData.c = c;
+  pickables.push(m);
+  crates.push(c);
+  return c;
+}
+
+function spawn(a){
+  const c = mk(a, ++prSeq, pick(TITLES));
+  a.s.prs++; a.pulse = 0.5;
+  return c;
+}
+
+// ================= Simulation Logic =================
+const events = [];
+function ev(html, cls = ''){
+  events.unshift(`<li class="${cls}">${html}</li>`);
+  events.length = 8;
+  $('events').innerHTML = events.join('');
+}
+const tag = c => `<span style="color:${c.agent.hex}">#${c.id}</span>`;
+const onBelt = c => c.state === 'belt' || c.state === 'proc';
+
+function fail(c, S, reason){
+  const s = c.agent.s; c.state = 'failed'; c.t = rnd(4, 7); c.reason = reason; c.failStage = S.n; c.hist.push([S.n, 0]);
+  S.review ? s.rejected++ : s.fails++; s.wasted += c.runMin;
+  S.flash = 0.5; S.flashColor.set(0xf85149);
+
+  // Trigger repair bay alarm flash
+  repairBayFlash = 1.0;
+  const p = c.mesh.position;
+  emit(p.x, p.y + 0.5, p.z, 0xf85149, 40, 2.5, 5);
+  ev(S.review ? `✋ ${tag(c)} changes requested — ${reason.replace('Changes requested: ', '')}` : `✕ ${tag(c)} ${S.n} · ${reason}`, 'bad');
+}
+
 function finishStage(c){
-  const S=STAGES[c.stage];
-  if(Math.random()<c.agent.fail[c.stage]) return fail(c,S,pick(REASONS[S.n]));
-  c.hist.push([S.n,1]); S.flash=.35; S.flashColor.set(0x3fb950);
-  emit(S.x,BY+.6,0,S.color,12,1.2,3);
-  if(c.stage===STAGES.length-1){
-    c.state='shipped'; c.t=8; c.agent.s.shipped++;
-    emit(30,1.5,0,0x3fb950,50,3,7); emit(30,1.5,0,c.agent.color,30,3,7);
-    ev(`🚀 ${tag(c)} shipped · ${c.agent.name}`,'good');
-  } else { c.stage++; c.state='belt'; }
+  const S = STAGES[c.stage];
+  if (Math.random() < c.agent.fail[c.stage]) return fail(c, S, pick(REASONS[S.n]));
+  c.hist.push([S.n, 1]); S.flash = 0.35; S.flashColor.set(0x3fb950);
+  emit(S.x, BY + 0.6, 0, S.color, 12, 1.2, 3);
+  if (c.stage === STAGES.length - 1){
+    c.state = 'shipped'; c.t = 8; c.agent.s.shipped++;
+    emit(27, 1.5, 0, 0x3fb950, 50, 3, 7); emit(27, 1.5, 0, c.agent.color, 30, 3, 7);
+    ev(`🚀 ${tag(c)} shipped · ${c.agent.short}`, 'good');
+  } else {
+    c.stage++; c.state = 'belt';
+  }
 }
 
 function step(dt){
-  simT+=dt;
-  const RV=STAGES.findIndex(s=>s.review), LAST=STAGES.length-1;
-  const live=crates.filter(c=>c.state!=='shipped'&&c.state!=='gone').length;
-  for(const a of AGENTS)
-    if(live<CAP && crates.filter(c=>c.agent===a&&c.state==='queued').length<6 && Math.random()<a.rate*volume*dt) spawn(a);
+  simT += dt;
+  const RV = STAGES.findIndex(s => s.review), LAST = STAGES.length - 1;
+  const live = crates.filter(c => c.state !== 'shipped' && c.state !== 'gone').length;
+  for (const a of AGENTS)
+    if (live < CAP && crates.filter(c => c.agent === a && c.state === 'queued').length < 5 && Math.random() < a.rate * volume * dt) spawn(a);
 
-  const belt=crates.filter(onBelt).sort((a,b)=>b.x-a.x);
-  // feed the belt: oldest waiting crate goes first when the entry is clear
-  if(!belt.length||belt.at(-1).x>ENTRY+GAP){
-    const q=crates.find(c=>c.state==='queued');
-    if(q){Object.assign(q,{state:'belt',x:ENTRY,stage:0,runMin:0}); q.agent.s.runs++; belt.push(q);}
-  }
-  belt.forEach((c,i)=>{
-    const S=STAGES[c.stage];
-    if(c.state==='proc'){
-      const m=dt*S.runners; c.runMin+=m; c.ciMin+=m; c.agent.s.min+=m;
-      if((c.t-=dt)<=0) finishStage(c); return;
+  const belt = crates.filter(onBelt).sort((a, b) => b.x - a.x);
+
+  // Feed belt through PRISM Sorter: oldest queued crate passes through PRISM
+  if (!belt.length || belt.at(-1).x > ENTRY + GAP){
+    const q = crates.find(c => c.state === 'queued');
+    if (q){
+      Object.assign(q, {state: 'belt', x: ENTRY, stage: 0, runMin: 0});
+      q.agent.s.runs++;
+      belt.push(q);
+
+      // Signature PRISM optical flare on sort
+      prismMat.emissiveIntensity = 2.4;
+      emit(PRISM_X, BY + 0.7, 0, q.agent.color, 24, 2.2, 3.5);
+      emit(PRISM_X, BY + 0.7, 0, 0xffffff, 14, 1.5, 2.0);
     }
-    let lim=S.x; if(i>0&&onBelt(belt[i-1])) lim=Math.min(lim,belt[i-1].x-GAP);
-    c.x=Math.max(c.x,Math.min(c.x+BELT_V*dt,lim));
-    if(c.x>=S.x-1e-3){ c.x=S.x;
-      if(S.review){c.state='review';c.waitStart=simT}
-      else {c.state='proc';c.t=S.d*rnd(.7,1.4)}
+  }
+
+  belt.forEach((c, i) => {
+    const S = STAGES[c.stage];
+    if (c.state === 'proc'){
+      const m = dt * S.runners; c.runMin += m; c.ciMin += m; c.agent.s.min += m;
+      if ((c.t -= dt) <= 0) finishStage(c); return;
+    }
+    let lim = S.x; if (i > 0 && onBelt(belt[i - 1])) lim = Math.min(lim, belt[i - 1].x - GAP);
+    c.x = Math.max(c.x, Math.min(c.x + BELT_V * dt, lim));
+    if (c.x >= S.x - 1e-3){
+      c.x = S.x;
+      if (S.review){ c.state = 'review'; c.waitStart = simT; }
+      else { c.state = 'proc'; c.t = S.d * rnd(0.7, 1.4); }
     }
   });
 
-  for(const r of reviewers){
-    if(!r.c){ const c=crates.find(c=>c.state==='review');
-      if(c){r.c=c;r.t=rnd(6,11);c.state='reviewing';c.reviewer=r;c.agent.s.waitSum+=simT-c.waitStart;c.agent.s.waitN++;} }
-    else if((r.t-=dt)<=0){ const c=r.c; r.c=null;
-      if(Math.random()<c.agent.fail[RV]) fail(c,STAGES[RV],pick(REASONS.Review));
-      else {c.hist.push(['Review',1]);c.state='approved';STAGES[RV].flash=.35;STAGES[RV].flashColor.set(0x3fb950);} }
+  for (const r of reviewers){
+    if (!r.c){
+      const c = crates.find(c => c.state === 'review');
+      if (c){
+        r.c = c; r.t = rnd(6, 11); c.state = 'reviewing'; c.reviewer = r;
+        c.agent.s.waitSum += simT - c.waitStart; c.agent.s.waitN++;
+      }
+    } else if ((r.t -= dt) <= 0){
+      const c = r.c; r.c = null;
+      if (Math.random() < c.agent.fail[RV]) fail(c, STAGES[RV], pick(REASONS.Review));
+      else { c.hist.push(['Review', 1]); c.state = 'approved'; STAGES[RV].flash = 0.35; STAGES[RV].flashColor.set(0x3fb950); }
+    }
   }
-  const ap=crates.find(c=>c.state==='approved');
-  if(ap&&!crates.some(c=>onBelt(c)&&Math.abs(c.x-MERGE)<GAP)) Object.assign(ap,{state:'belt',x:MERGE,stage:LAST});
 
-  for(const c of crates){
-    if(c.state==='failed'&&(c.t-=dt)<=0){
-      if(c.tries<3&&Math.random()<.75){c.tries++;c.state='queued';c.hist.push(['retry',2])}
-      else {c.state='gone';ev(`⌀ ${tag(c)} abandoned after ${c.tries} tries`,'meh')}
-    } else if(c.state==='shipped'&&(c.t-=dt)<=0) c.state='gone';
+  const ap = crates.find(c => c.state === 'approved');
+  if (ap && !crates.some(c => onBelt(c) && Math.abs(c.x - MERGE) < GAP))
+    Object.assign(ap, {state: 'belt', x: MERGE, stage: LAST});
+
+  for (const c of crates){
+    if (c.state === 'failed' && (c.t -= dt) <= 0){
+      if (c.tries < 3 && Math.random() < 0.75){
+        c.tries++; c.state = 'queued'; c.hist.push(['retry', 2]);
+      } else {
+        c.state = 'gone'; ev(`⌀ ${tag(c)} abandoned after ${c.tries} tries`, 'meh');
+      }
+    } else if (c.state === 'shipped' && (c.t -= dt) <= 0) c.state = 'gone';
   }
 }
 
-// ================= visuals =================
-const T=new THREE.Vector3();
-function target(c,slot){
-  const col=(n)=>slot%n, row=(n)=>Math.floor(slot/n);
-  switch(c.state){
-    case 'queued': return T.set(-27-Math.floor(slot/3)*1.05,.45+(slot%3)*.92,c.agent.z);
-    case 'belt': case 'proc': return T.set(c.x,BY,0);
-    case 'review': return T.set(8.6+col(6)*1.1,.45+Math.floor(slot/24)*.92,-4.6-(row(6)%4)*1.1);
-    case 'reviewing': return T.set(c.reviewer.x,1.25,-10.3);
-    case 'approved': return T.set(MERGE,.45+slot*.92,-2.4);
-    case 'failed': return T.set(-9+col(9)*1.1,.45+Math.floor(slot/27)*.92,4.8+(row(9)%3)*1.1);
-    case 'shipped': return T.set(29+col(4)*1.1,.45+Math.floor(slot/16)*.92,-2.6+(row(4)%4)*1.1);
-    default: return T.copy(c.mesh.position).setY(c.mesh.position.y+.05);
+// ================= Visual Updates & Waypoint Motion =================
+const T = new THREE.Vector3();
+function target(c, slot){
+  const col = n => slot % n, row = n => Math.floor(slot / n);
+  switch (c.state){
+    case 'queued':
+      // Neat 2-deep slots right by each robot
+      return T.set(-27.2 - Math.floor(slot / 2) * 1.05, 0.45 + (slot % 2) * 0.92, c.agent.z);
+    case 'belt': case 'proc':
+      return T.set(c.x, BY, 0);
+    case 'review':
+      // Compact slots on the Human Review pad
+      return T.set(9.0 + col(4) * 1.05, 0.45 + Math.floor(slot / 12) * 0.92, -5.2 - (row(4) % 3) * 1.05);
+    case 'reviewing':
+      return T.set(c.reviewer.x, 1.15, -6.4);
+    case 'approved':
+      return T.set(MERGE, 0.45 + slot * 0.92, -1.8);
+    case 'failed':
+      // Neat rows in the compact Repair Bay
+      return T.set(-7.5 + col(6) * 1.05, 0.45 + Math.floor(slot / 18) * 0.92, 5.2 + (row(6) % 3) * 1.05);
+    case 'shipped':
+      // Neat grid in the Shipped Dock
+      return T.set(26.2 + col(3) * 1.05, 0.45 + Math.floor(slot / 9) * 0.92, -1.8 + (row(3) % 3) * 1.05);
+    default:
+      return T.copy(c.mesh.position).setY(c.mesh.position.y + 0.05);
   }
 }
-const busy=new Set(); let hudT=0, smokeT=0, hot=-1;
-function visuals(rdt,dt,t){
-  const slots={}; busy.clear();
-  crates.forEach(c=>{
-    const key=c.state==='queued'?'q'+c.agent.name:c.state, slot=slots[key]=(slots[key]??-1)+1;
-    const m=c.mesh, tgt=target(c,slot), d=m.position.distanceTo(tgt), fast=onBelt(c);
-    if(!fast&&d>1.5) tgt.y+=Math.min(d,6)*.3;           // hop between zones
-    m.position.lerp(tgt,1-Math.exp(-rdt*(fast?14:5)));
-    if(c.state==='proc'){busy.add(c.stage);m.position.y=BY+Math.sin(t*30)*.02}
-    const mt=c.mat;
-    if(c.state==='failed'){mt.emissive.setHex(0xf85149);mt.emissiveIntensity=.6+.4*Math.sin(t*6)}
-    else if(c.state==='shipped'){mt.emissive.setHex(0x3fb950);mt.emissiveIntensity=.7}
-    else {mt.emissive.setHex(c.agent.color);mt.emissiveIntensity=c.state==='proc'?.5+.3*Math.sin(t*10):.12}
-    if(c.state==='gone') c.fade-=rdt*1.5;
-    mt.opacity=Math.max(0,c.fade)*(focus&&c.agent!==focus?.12:1);
-    m.rotation.y=c.state==='reviewing'?Math.sin(t*2)*.15:0;
-  });
-  // remove faded crates
-  crates=crates.filter(c=>{ if(c.fade>0) return true;
-    scene.remove(c.mesh); c.mat.dispose(); pickables.splice(pickables.indexOf(c.mesh),1); liveMap.delete(c.id); if(selected===c) select(null); return false; });
 
-  STAGES.forEach((S,i)=>{
-    S.flash=Math.max(0,S.flash-rdt);
-    if(S.flash>0){S.lampMat.emissive.copy(S.flashColor);S.lampMat.emissiveIntensity=4}
-    else {S.lampMat.emissive.setHex(S.color);S.lampMat.emissiveIntensity=busy.has(i)?2+Math.sin(t*8):.35}
-    S.scanMat.opacity=busy.has(i)?.25+.15*Math.sin(t*12):0;
-  });
-  reviewers.forEach(r=>{r.haloMat.opacity=r.c?.6+.4*Math.sin(t*4):0});
-  AGENTS.forEach((a,i)=>{
-    a.pulse=Math.max(0,(a.pulse||0)-rdt);
-    a.body.position.y=.08*Math.sin(t*2+i)+a.pulse*.6; a.visor.emissiveIntensity=2.2+a.pulse*8;
-    a.robot.rotation.y=Math.PI/2+Math.sin(t*.7+i)*.15;
-  });
-  beltTex.offset.x-=BELT_V*dt/1.2;
+const busy = new Set();
+let hudT = 0, smokeT = 0, hot = -1;
 
-  // bottleneck: station with the longest queue starts smoking
-  smokeT+=dt; if(hot>=0&&smokeT>.08){smokeT=0;emit(STAGES[hot].x,3.9,0,0x6b7280,3,.4,1.5,.6,2.2)}
-  if(selected){selected.mesh.add(selBox)}
+function visuals(rdt, dt, t){
+  const slots = {}; busy.clear();
+
+  // Prism crystal idle rotation and beacon animation
+  prismCrystal.rotation.y = Math.PI / 6 + Math.sin(t * 0.8) * 0.08;
+  diamondBeacon.rotation.y = t * 1.8;
+  diamondBeacon.position.y = 3.9 + Math.sin(t * 2) * 0.08;
+  prismMat.emissiveIntensity = Math.max(0.35, prismMat.emissiveIntensity - rdt * 2);
+
+  // Repair bay alarm flash
+  repairBayFlash = Math.max(0, repairBayFlash - rdt * 1.5);
+  const isBayActive = crates.some(c => c.state === 'failed');
+  if (repairBayFlash > 0 || isBayActive){
+    repairBeaconMat.emissiveIntensity = 2.0 + Math.sin(t * 16) * 1.2;
+  } else {
+    repairBeaconMat.emissiveIntensity = 0.35;
+  }
+
+  crates.forEach(c => {
+    const key = c.state === 'queued' ? 'q' + c.agent.name : c.state;
+    const slot = slots[key] = (slots[key] ?? -1) + 1;
+    const m = c.mesh, tgt = target(c, slot), d = m.position.distanceTo(tgt), fast = onBelt(c);
+
+    // Smooth waypoint hopping between zones (restrained motion)
+    if (!fast && d > 1.4) tgt.y += Math.min(d, 5) * 0.25;
+    m.position.lerp(tgt, 1 - Math.exp(-rdt * (fast ? 14 : 6)));
+
+    if (c.state === 'proc'){ busy.add(c.stage); m.position.y = BY + Math.sin(t * 25) * 0.02; }
+
+    // Dynamic 3D Status Light Beacon on crate
+    const bm = c.beaconMat;
+    if (c.state === 'failed'){
+      bm.emissive.setHex(0xf85149);
+      bm.emissiveIntensity = 2.5 + Math.sin(t * 18) * 1.5;
+    } else if (c.state === 'proc'){
+      bm.emissive.setHex(STAGES[c.stage]?.color || 0xf59e0b);
+      bm.emissiveIntensity = 1.8 + Math.sin(t * 10) * 0.8;
+    } else if (c.state === 'review' || c.state === 'reviewing'){
+      bm.emissive.setHex(0xfbbf24);
+      bm.emissiveIntensity = 1.4 + Math.sin(t * 4) * 0.6;
+    } else if (c.state === 'shipped' || c.state === 'approved'){
+      bm.emissive.setHex(0x3fb950);
+      bm.emissiveIntensity = 2.0;
+    } else if (c.state === 'belt'){
+      bm.emissive.setHex(c.agent.color);
+      bm.emissiveIntensity = 1.2;
+    } else {
+      bm.emissive.setHex(c.agent.color);
+      bm.emissiveIntensity = 0.4;
+    }
+
+    if (c.state === 'gone') c.fade -= rdt * 1.5;
+    c.mat.opacity = Math.max(0, c.fade) * (focus && c.agent !== focus ? 0.15 : 1);
+    m.rotation.y = c.state === 'reviewing' ? Math.sin(t * 2) * 0.12 : 0;
+  });
+
+  // Clean up faded crates
+  crates = crates.filter(c => {
+    if (c.fade > 0) return true;
+    scene.remove(c.mesh);
+    c.mat.dispose();
+    c.tex.dispose();
+    c.beaconMat.dispose();
+    pickables.splice(pickables.indexOf(c.mesh), 1);
+    liveMap.delete(c.id);
+    if (selected === c) select(null);
+    return false;
+  });
+
+  STAGES.forEach((S, i) => {
+    S.flash = Math.max(0, S.flash - rdt);
+    if (S.flash > 0){ S.lampMat.emissive.copy(S.flashColor); S.lampMat.emissiveIntensity = 4; }
+    else { S.lampMat.emissive.setHex(S.color); S.lampMat.emissiveIntensity = busy.has(i) ? 2 + Math.sin(t * 8) : 0.35; }
+    S.scanMat.opacity = busy.has(i) ? 0.25 + 0.15 * Math.sin(t * 12) : 0;
+  });
+
+  reviewers.forEach(r => { r.haloMat.opacity = r.c ? 0.6 + 0.4 * Math.sin(t * 4) : 0; });
+
+  AGENTS.forEach((a, i) => {
+    a.pulse = Math.max(0, (a.pulse || 0) - rdt);
+    a.body.position.y = 0.06 * Math.sin(t * 2 + i) + a.pulse * 0.5;
+    a.visor.emissiveIntensity = 2.2 + a.pulse * 8;
+    a.robot.rotation.y = Math.PI / 2 + Math.sin(t * 0.7 + i) * 0.1;
+  });
+
+  beltTex.offset.x -= BELT_V * dt / 1.2;
+
+  // Bottleneck smoke
+  smokeT += dt;
+  if (hot >= 0 && smokeT > 0.08){
+    smokeT = 0;
+    emit(STAGES[hot].x, 3.8, 0, 0x6b7280, 3, 0.4, 1.5, 0.6, 2.2);
+  }
+
+  if (selected){ selected.mesh.add(selBox); }
   updateParticles(rdt);
-  if((hudT-=rdt)<=0){hudT=.25;hud()}
+  if ((hudT -= rdt) <= 0){ hudT = 0.25; hud(); }
 }
 
-// ================= HUD =================
-const money=v=>'$'+(v*rate).toFixed(v*rate<100?2:0), mins=v=>v<60?v.toFixed(0)+'m':(v/60).toFixed(1)+'h';
+// ================= HUD & Leaderboard =================
+const money = v => '$' + (v * rate).toFixed(v * rate < 100 ? 2 : 0);
+const mins = v => v < 60 ? v.toFixed(0) + 'm' : (v / 60).toFixed(1) + 'h';
+
 function hud(){
-  const count=st=>crates.filter(c=>st.includes(c.state));
-  let spend=0,waste=0,ship=0,ws=0,wn=0;
-  AGENTS.forEach(a=>{spend+=a.s.min;waste+=a.s.wasted;ship+=a.s.shipped;ws+=a.s.waitSum;wn+=a.s.waitN});
-  $('k-spend').textContent=money(spend); $('k-waste').textContent=money(waste);
-  $('k-pipe').textContent=count(['belt','proc']).length; $('k-review').textContent=count(['review','reviewing','approved']).length;
-  $('k-wait').textContent=wn?mins(ws/wn):'–'; $('k-ship').textContent=ship;
-  $('k-clock').textContent=mode==='live'?(lastPoll?new Date(lastPoll).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'–'):mins(simT);
+  const count = st => crates.filter(c => st.includes(c.state));
+  let spend = 0, waste = 0, ship = 0, ws = 0, wn = 0;
+  AGENTS.forEach(a => { spend += a.s.min; waste += a.s.wasted; ship += a.s.shipped; ws += a.s.waitSum; wn += a.s.waitN; });
+  $('k-spend').textContent = money(spend); $('k-waste').textContent = money(waste);
+  $('k-pipe').textContent = count(['belt', 'proc']).length; $('k-review').textContent = count(['review', 'reviewing', 'approved']).length;
+  $('k-wait').textContent = wn ? mins(ws / wn) : '–'; $('k-ship').textContent = ship;
+  $('k-clock').textContent = mode === 'live' ? (lastPoll ? new Date(lastPoll).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '–') : mins(simT);
 
-  const rows=[...AGENTS].filter(a=>!a.liveOnly||a.s.prs).sort((a,b)=>b.s.min-a.s.min).map(a=>{
-    const s=a.s, br=s.runs?s.fails/s.runs:0, cls=br>.25?'bad':br>.12?'meh':'good', i=AGENTS.indexOf(a);
-    const inRev=crates.filter(c=>c.agent===a&&['review','reviewing'].includes(c.state)).length;
-    return `<tr class="row${focus===a?' focus':''}" data-i="${i}"><td><span class="dot" style="background:${a.hex}"></span>${a.name}</td>
-      <td>${s.prs}</td><td class="${cls}">${(br*100).toFixed(0)}%</td><td>${money(s.min)}</td><td class="bad">${money(s.wasted)}</td>
-      <td class="${inRev>3?'meh':''}">${inRev}</td><td class="good">${s.shipped}</td></tr>`;
+  // Agent Leaderboard Table: fits comfortably within viewport
+  const rows = [...AGENTS].filter(a => !a.liveOnly || a.s.prs).sort((a, b) => b.s.min - a.s.min).map(a => {
+    const s = a.s, br = s.runs ? s.fails / s.runs : 0, cls = br > 0.25 ? 'bad' : br > 0.12 ? 'meh' : 'good', i = AGENTS.indexOf(a);
+    const inRev = crates.filter(c => c.agent === a && ['review', 'reviewing'].includes(c.state)).length;
+    return `<tr class="row${focus === a ? ' focus' : ''}" data-i="${i}">
+      <td><span class="dot" style="background:${a.hex}"></span>${a.short}</td>
+      <td>${s.prs}</td>
+      <td class="${cls}">${(br * 100).toFixed(0)}%</td>
+      <td>${money(s.min)}</td>
+      <td class="bad">${money(s.wasted)}</td>
+      <td class="${inRev > 3 ? 'meh' : ''}">${inRev}</td>
+      <td class="good">${s.shipped}</td>
+    </tr>`;
   }).join('');
-  $('rows').innerHTML=rows;
+  $('rows').innerHTML = rows;
 
-  hot=-1;
-  STAGES.forEach((S,i)=>{
-    const q=crates.filter(c=>c.state==='belt'&&c.stage===i).length;
-    if(!S.review&&q>=3) hot=i; // backpressure fills every queue upstream, so the real bottleneck is the furthest-downstream full one
-    S.q=q;
+  hot = -1;
+  STAGES.forEach((S, i) => {
+    const q = crates.filter(c => c.state === 'belt' && c.stage === i).length;
+    if (!S.review && q >= 3) hot = i;
+    S.q = q;
   });
-  STAGES.forEach((S,i)=>{
-    if(S.review){ const w=count(['review']).length;
-      S.lbl.innerHTML=`${S.n}<small>${w} waiting${mode==='live'?' for a human':` · ${reviewers.length} humans`}</small>`; S.lbl.classList.toggle('hot',w>=8); return; }
-    if(mode==='live'){ S.lbl.innerHTML=i===0?`${S.n}<small>${count(['proc']).length} running · ${count(['failed']).length} red</small>`:`${S.n}<small>${ship} merged</small>`; return; }
-    S.lbl.innerHTML=`${S.n}<small>${i===hot?'🔥 BOTTLENECK · ':''}queue ${S.q} · ×${S.runners} runner${S.runners>1?'s':''}</small>`;
-    S.lbl.classList.toggle('hot',i===hot);
+
+  STAGES.forEach((S, i) => {
+    if (S.review){
+      const w = count(['review']).length;
+      S.lbl.innerHTML = `${S.n}<small>${w} waiting${mode === 'live' ? ' for a human' : ` · ${reviewers.length} humans`}</small>`;
+      S.lbl.classList.toggle('hot', w >= 8);
+      return;
+    }
+    if (mode === 'live'){
+      S.lbl.innerHTML = i === 0 ? `${S.n}<small>${count(['proc']).length} running · ${count(['failed']).length} red</small>` : `${S.n}<small>${ship} merged</small>`;
+      return;
+    }
+    S.lbl.innerHTML = `${S.n}<small>${i === hot ? '🔥 BOTTLENECK · ' : ''}queue ${S.q} · ×${S.runners} runner${S.runners > 1 ? 's' : ''}</small>`;
+    S.lbl.classList.toggle('hot', i === hot);
   });
-  AGENTS.forEach(a=>{ const q=crates.filter(c=>c.agent===a&&c.state==='queued').length;
-    a.lbl.innerHTML=`<span style="color:${a.hex}">${a.name}</span><small>${q} PR${q===1?'':'s'} queued</small>`; });
-  if(selected) inspect();
+
+  // Update Compact Agent Nameplates
+  AGENTS.forEach(a => {
+    const q = crates.filter(c => c.agent === a && c.state === 'queued').length;
+    a.lbl.innerHTML = `<span class="pdot" style="background:${a.hex}"></span>${a.short} <span class="qbadge ${q ? 'has-q' : ''}">${q}</span>`;
+  });
+
+  if (selected) inspect();
 }
 
 function status(c){
-  switch(c.state){
-    case 'queued': return c.live?'Draft, or no CI run yet':c.tries>1?`Re-pushed fix, waiting for CI (try ${c.tries})`:'Waiting for a CI slot';
-    case 'belt': return `Moving to ${STAGES[c.stage].n}`;
-    case 'proc': return `<span class="meh">● Running ${STAGES[c.stage].n}</span>`;
-    case 'review': return `<span class="meh">${c.live?'CI green, open · ':'Waiting for human review · '}${mins(now()-c.waitStart)}</span>`;
+  switch (c.state){
+    case 'queued': return c.live ? 'Draft, or no CI run yet' : c.tries > 1 ? `Re-pushed fix, waiting for CI (try ${c.tries})` : 'Waiting for a CI slot';
+    case 'belt': return `Moving to ${STAGES[c.stage]?.n || 'CI'}`;
+    case 'proc': return `<span class="meh">● Running ${STAGES[c.stage]?.n || 'CI'}</span>`;
+    case 'review': return `<span class="meh">${c.live ? 'CI green, open · ' : 'Waiting for human review · '}${mins(now() - c.waitStart)}</span>`;
     case 'reviewing': return '<span class="meh">Human is reviewing</span>';
     case 'approved': return '<span class="good">Approved · merging</span>';
     case 'failed': return `<span class="bad">✕ Failed at ${c.failStage}</span>`;
-    case 'shipped': return `<span class="good">${c.live?'Merged':'🚀 Shipped to production'}</span>`;
+    case 'shipped': return `<span class="good">${c.live ? 'Merged' : '🚀 Shipped to production'}</span>`;
     default: return 'Closed';
   }
 }
+
 function inspect(){
-  const c=selected;
-  $('inspect').innerHTML=`<button class="x" id="close">✕</button>
+  const c = selected;
+  $('inspect').innerHTML = `<button class="x" id="close">✕</button>
     <h2><span style="color:${c.agent.hex}">#${c.id}</span> · ${c.agent.name}</h2>
     <div class="title">${esc(c.title)}</div>
-    <div class="meta"><span>Status</span><div>${status(c)}</div>
-      <span>${c.live?'CI runs':'Attempts'}</span><div class="mono">${c.tries}</div>
-      <span>CI time</span><div class="mono">${mins(c.ciMin)} ${c.live?'(est.)':'runner'}</div>
-      <span>CI cost</span><div class="mono">${money(c.ciMin)}${c.live?' (est.)':''}</div></div>
-    <div class="tl">${c.hist.map(([n,ok])=>`<b class="${['f','p','r'][ok]}">${ok===2?'↻ retry':(ok?'✓ ':'✕ ')+esc(n)}</b>`).join('')||'<b>no runs yet</b>'}</div>
-    ${c.state==='failed'?(c.live
-      ?`<div class="triage"><b>Latest failed run</b><br>${esc(c.reason)}${GH.test(c.runUrl)?`<br><a href="${esc(c.runUrl)}" target="_blank" rel="noopener noreferrer">Open run ↗</a>`:''}</div>`
-      :`<div class="triage"><b>AI triage</b> <span class="sim">SIMULATED</span><br>${c.reason}<br><span style="color:var(--m)">→ ${FIX[c.failStage]}</span></div>`):''}
-    ${c.live&&GH.test(c.url)?`<p class="hint"><a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Open PR on GitHub ↗</a></p>`:''}`;
-  $('close').onclick=()=>select(null);
+    <div class="meta">
+      <span>Status</span><div>${status(c)}</div>
+      <span>${c.live ? 'CI runs' : 'Attempts'}</span><div class="mono">${c.tries}</div>
+      <span>CI time</span><div class="mono">${mins(c.ciMin)} ${c.live ? '(est.)' : 'runner'}</div>
+      <span>CI cost</span><div class="mono">${money(c.ciMin)}${c.live ? ' (est.)' : ''}</div>
+    </div>
+    <div class="tl">${c.hist.map(([n, ok]) => `<b class="${['f', 'p', 'r'][ok]}">${ok === 2 ? '↻ retry' : (ok ? '✓ ' : '✕ ') + esc(n)}</b>`).join('') || '<b>no runs yet</b>'}</div>
+    ${c.state === 'failed' ? (c.live
+      ? `<div class="triage"><b>Latest failed run</b><br>${esc(c.reason)}${GH.test(c.runUrl) ? `<br><a href="${esc(c.runUrl)}" target="_blank" rel="noopener noreferrer">Open run ↗</a>` : ''}</div>`
+      : `<div class="triage"><b>AI triage</b> <span class="sim">SIMULATED</span><br>${c.reason}<br><span style="color:var(--m)">→ ${FIX[c.failStage]}</span></div>`) : ''}
+    ${c.live && GH.test(c.url) ? `<p class="hint"><a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Open PR on GitHub ↗</a></p>` : ''}`;
+  $('close').onclick = () => select(null);
 }
-function select(c){ selected=c; selBox.removeFromParent(); $('inspect').hidden=!c; if(c) inspect(); }
+function select(c){ selected = c; selBox.removeFromParent(); $('inspect').hidden = !c; if (c) inspect(); }
 
-// ================= input =================
-const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(); let down=null;
-renderer.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
-renderer.domElement.addEventListener('pointerup',e=>{
-  if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5) return;
-  ptr.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(ptr,camera);
-  const hit=ray.intersectObjects(pickables,false)[0]; select(hit?hit.object.userData.c:null);
-});
-$('rows').onclick=e=>{const tr=e.target.closest('tr'); if(!tr) return; const a=AGENTS[tr.dataset.i]; focus=focus===a?null:a; hud();};
-document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{speed=+b.dataset.s;document.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x===b));$('pause').textContent='❚❚'});
-let saved=1; $('pause').onclick=()=>{ if(speed){saved=speed;speed=0;$('pause').textContent='▶'} else {speed=saved;$('pause').textContent='❚❚'} };
-$('rev+').onclick=()=>{ if(reviewers.length<5){addReviewer();$('revn').textContent=reviewers.length} };
-$('rev-').onclick=()=>{ if(reviewers.length>1&&removeReviewer()) $('revn').textContent=reviewers.length };
-$('vol').oninput=e=>{volume=+e.target.value;$('voln').textContent=volume+'×'};
-$('rate').oninput=e=>{rate=Math.max(0,+e.target.value||0);hud()};
-$('cine').onclick=()=>{controls.autoRotate=!controls.autoRotate;document.body.classList.toggle('clean',controls.autoRotate);$('cine').classList.toggle('on',controls.autoRotate)};
-$('home').onclick=()=>{homeCam();controls.target.copy(HOME[1])};
-addEventListener('resize',()=>{
-  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight); labelR.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight);
+// ================= Input & Interactivity =================
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let down = null;
+renderer.domElement.addEventListener('pointerdown', e => down = [e.clientX, e.clientY]);
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return;
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(pickables, false)[0]; select(hit ? hit.object.userData.c : null);
 });
 
-// ================= live source: GitHub =================
-// Reads PRs + workflow runs from the public API and writes the same crate fields the simulator does.
-// Limits: review state is inferred (CI green + PR open = waiting for a human); cost is wall-clock minutes of each run
-// (a lower bound: parallel jobs bill separately); only the 30 newest PRs and 100 newest runs are looked at.
-const GH=/^https:\/\/github\.com\//;
-let lastPoll=0;
-const A=n=>AGENTS.find(a=>a.name===n);
-function agentOf(p){ // heuristics: bot account, branch prefix, or the "Generated with Claude Code" footer
-  const l=(p.user?.login||'').toLowerCase(), ref=(p.head?.ref||'').toLowerCase(), body=p.body||'';
-  if(/copilot/.test(l)||ref.startsWith('copilot/')) return A('Copilot Agent');
-  if(/devin/.test(l)) return A('Devin');
-  if(/cursor/.test(l)||ref.startsWith('cursor/')) return A('Cursor');
-  if(/codex/.test(l)||ref.startsWith('codex/')) return A('Codex');
-  if(ref.startsWith('claude/')||/generated with \[?claude code|co-authored-by: claude/i.test(body)) return A('Claude Code');
-  return p.user?.type==='Bot'?A('Bots'):A('Humans');
+$('rows').onclick = e => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  const a = AGENTS[tr.dataset.i]; focus = focus === a ? null : a; hud();
+};
+document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
+  speed = +b.dataset.s;
+  document.querySelectorAll('[data-s]').forEach(x => x.classList.toggle('on', x === b));
+  $('pause').textContent = '❚❚';
+});
+let saved = 1;
+$('pause').onclick = () => {
+  if (speed){ saved = speed; speed = 0; $('pause').textContent = '▶'; }
+  else { speed = saved; $('pause').textContent = '❚❚'; }
+};
+$('rev+').onclick = () => { if (reviewers.length < 5){ addReviewer(); $('revn').textContent = reviewers.length; } };
+$('rev-').onclick = () => { if (reviewers.length > 1 && removeReviewer()) $('revn').textContent = reviewers.length; };
+$('vol').oninput = e => { volume = +e.target.value; $('voln').textContent = volume + '×'; };
+$('rate').oninput = e => { rate = Math.max(0, +e.target.value || 0); hud(); };
+$('cine').onclick = () => {
+  controls.autoRotate = !controls.autoRotate;
+  document.body.classList.toggle('clean', controls.autoRotate);
+  $('cine').classList.toggle('on', controls.autoRotate);
+};
+$('home').onclick = () => { homeCam(); controls.target.copy(HOME[1]); };
+
+// Light/Dark Theme Switcher
+function applyTheme(){
+  const light = isLight();
+  const bgCol = light ? 0xf0f4f8 : 0x0a0e14;
+  scene.background = new THREE.Color(bgCol);
+  scene.fog = new THREE.Fog(bgCol, 65, 140);
+  floor.material.color.setHex(light ? 0xe2e8f0 : 0x0e131b);
+  scene.remove(grid);
+  grid = new THREE.GridHelper(160, 80, light ? 0xcbd5e1 : 0x141b24, light ? 0xe2e8f0 : 0x0f151d);
+  grid.position.y = 0.01;
+  scene.add(grid);
+  hemi.color.setHex(light ? 0xffffff : 0xa9bbdd);
+  hemi.groundColor.setHex(light ? 0xd0d7de : 0x1a2230);
+
+  // Refresh crate textures for optimal contrast in theme
+  crates.forEach(c => {
+    const oldTex = c.tex;
+    c.tex = makeCrateTexture(c.agent, c.id);
+    c.mat.map = c.tex;
+    c.mat.needsUpdate = true;
+    oldTex.dispose();
+  });
 }
-const minsBetween=(a,b)=>Math.max(0,(Date.parse(b)-Date.parse(a))/6e4);
-function applyLive(prs,runs){
-  const bySha=new Map(prs.map(p=>[p.head.sha,p.number])), nums=new Set(prs.map(p=>p.number)), per={}, keep=new Set(), nowM=Date.now()/6e4;
-  for(const r of runs){ const n=r.pull_requests?.[0]?.number??bySha.get(r.head_sha); if(nums.has(n)) (per[n]??=[]).push(r); }
-  AGENTS.forEach(a=>a.s=blank());
-  let nProc=0, shown=0;
-  const dur=r=>minsBetween(r.run_started_at||r.created_at,r.status==='completed'?r.updated_at:new Date());
-  const bad=r=>r.status==='completed'&&!['success','neutral','skipped','cancelled'].includes(r.conclusion);
-  for(const p of prs){
-    const a=agentOf(p), s=a.s, rs=(per[p.number]||[]).sort((x,y)=>Date.parse(x.created_at)-Date.parse(y.created_at)), last=rs.at(-1);
-    s.prs++; s.runs+=rs.length; rs.forEach(r=>{const m=dur(r); s.min+=m; if(bad(r)){s.fails++; s.wasted+=m}});
-    const pending=!last||['queued','waiting','pending','requested'].includes(last.status)||last.conclusion==='cancelled';
-    const state=p.merged_at?'shipped':p.state==='closed'?'gone':p.draft||pending?'queued':last.status!=='completed'?'proc':bad(last)?'failed':'review';
-    const green=last&&last.status==='completed'&&!bad(last)&&last.conclusion!=='cancelled', doneAt=green?Date.parse(last.updated_at)/6e4:nowM;
-    if(state==='shipped'){ s.shipped++; if(green){ s.waitSum+=Math.max(0,Date.parse(p.merged_at)/6e4-doneAt); s.waitN++; } }
-    if(state==='review'){ s.waitSum+=nowM-doneAt; s.waitN++; }
-    if(state==='gone'||(state==='shipped'&&++shown>12)) continue; // closed-unmerged isn't drawn; only the 12 newest merges are
-    let c=liveMap.get(p.number); const first=!c;
-    if(first){ c=mk(a,p.number,p.title); c.live=true; liveMap.set(p.number,c); a.pulse=.5; }
-    const prev=c.state;
-    Object.assign(c,{state,stage:state==='shipped'?STAGES.length-1:0,title:p.title,url:p.html_url,runUrl:last?.html_url,reason:last?`${last.name} · ${last.conclusion}`:'',
-      failStage:'CI',tries:rs.length,ciMin:rs.reduce((t,r)=>t+dur(r),0),waitStart:doneAt,fade:1,
-      hist:rs.filter(r=>r.status==='completed').slice(-8).map(r=>['CI',bad(r)?0:1])});
-    if(state==='proc') c.x=STAGES[0].x-(Math.min(nProc++,10))*GAP; // several PRs can be running at once: queue them up the belt
+
+$('theme-btn').onclick = () => {
+  const next = isLight() ? 'dark' : 'light';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('prism-theme', next); } catch {}
+  applyTheme();
+};
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  homeCam();
+  renderer.setSize(innerWidth, innerHeight); labelR.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+});
+
+// ================= Live Source: GitHub =================
+const GH = /^https:\/\/github\.com\//;
+let lastPoll = 0;
+const A = n => AGENTS.find(a => a.name === n);
+function agentOf(p){
+  const l = (p.user?.login || '').toLowerCase(), ref = (p.head?.ref || '').toLowerCase(), body = p.body || '';
+  if (/copilot/.test(l) || ref.startsWith('copilot/')) return A('Copilot Agent');
+  if (/devin/.test(l)) return A('Devin');
+  if (/cursor/.test(l) || ref.startsWith('cursor/')) return A('Cursor');
+  if (/codex/.test(l) || ref.startsWith('codex/')) return A('Codex');
+  if (ref.startsWith('claude/') || /generated with \[?claude code|co-authored-by: claude/i.test(body)) return A('Claude Code');
+  return p.user?.type === 'Bot' ? A('Bots') : A('Humans');
+}
+const minsBetween = (a, b) => Math.max(0, (Date.parse(b) - Date.parse(a)) / 6e4);
+
+function applyLive(prs, runs){
+  const bySha = new Map(prs.map(p => [p.head.sha, p.number])), nums = new Set(prs.map(p => p.number)), per = {}, keep = new Set(), nowM = Date.now() / 6e4;
+  for (const r of runs){ const n = r.pull_requests?.[0]?.number ?? bySha.get(r.head_sha); if (nums.has(n)) (per[n] ??= []).push(r); }
+  AGENTS.forEach(a => a.s = blank());
+  let nProc = 0, shown = 0;
+  const dur = r => minsBetween(r.run_started_at || r.created_at, r.status === 'completed' ? r.updated_at : new Date());
+  const bad = r => r.status === 'completed' && !['success', 'neutral', 'skipped', 'cancelled'].includes(r.conclusion);
+
+  for (const p of prs){
+    const a = agentOf(p), s = a.s, rs = (per[p.number] || []).sort((x, y) => Date.parse(x.created_at) - Date.parse(y.created_at)), last = rs.at(-1);
+    s.prs++; s.runs += rs.length; rs.forEach(r => { const m = dur(r); s.min += m; if (bad(r)){ s.fails++; s.wasted += m; } });
+    const pending = !last || ['queued', 'waiting', 'pending', 'requested'].includes(last.status) || last.conclusion === 'cancelled';
+    const state = p.merged_at ? 'shipped' : p.state === 'closed' ? 'gone' : p.draft || pending ? 'queued' : last.status !== 'completed' ? 'proc' : bad(last) ? 'failed' : 'review';
+    const green = last && last.status === 'completed' && !bad(last) && last.conclusion !== 'cancelled', doneAt = green ? Date.parse(last.updated_at) / 6e4 : nowM;
+    if (state === 'shipped'){ s.shipped++; if (green){ s.waitSum += Math.max(0, Date.parse(p.merged_at) / 6e4 - doneAt); s.waitN++; } }
+    if (state === 'review'){ s.waitSum += nowM - doneAt; s.waitN++; }
+    if (state === 'gone' || (state === 'shipped' && ++shown > 12)) continue;
+    let c = liveMap.get(p.number); const first = !c;
+    if (first){
+      c = mk(a, p.number, p.title); c.live = true; liveMap.set(p.number, c); a.pulse = 0.5;
+      prismMat.emissiveIntensity = 2.0;
+      emit(PRISM_X, BY + 0.7, 0, a.color, 20, 2.0, 3.0);
+    }
+    const prev = c.state;
+    Object.assign(c, {
+      state, stage: state === 'shipped' ? STAGES.length - 1 : 0, title: p.title, url: p.html_url, runUrl: last?.html_url,
+      reason: last ? `${last.name} · ${last.conclusion}` : '', failStage: 'CI', tries: rs.length,
+      ciMin: rs.reduce((t, r) => t + dur(r), 0), waitStart: doneAt, fade: 1,
+      hist: rs.filter(r => r.status === 'completed').slice(-8).map(r => ['CI', bad(r) ? 0 : 1])
+    });
+    if (state === 'proc') c.x = STAGES[0].x - (Math.min(nProc++, 10)) * GAP;
     keep.add(c);
-    if(!first&&prev!==state){
-      if(state==='failed'){ STAGES[0].flash=.5; STAGES[0].flashColor.set(0xf85149); emit(STAGES[0].x,BY+.6,0,0xf85149,40,2.5,5); ev(`✕ ${tag(c)} CI failed · ${esc(p.title)}`,'bad'); }
-      else if(state==='review') ev(`⏳ ${tag(c)} CI green, waiting for a human · ${esc(p.title)}`,'meh');
-      else if(state==='shipped'){ emit(30,1.5,0,0x3fb950,50,3,7); ev(`🚀 ${tag(c)} merged · ${esc(p.title)}`,'good'); }
+    if (!first && prev !== state){
+      if (state === 'failed'){
+        STAGES[0].flash = 0.5; STAGES[0].flashColor.set(0xf85149);
+        repairBayFlash = 1.0;
+        emit(STAGES[0].x, BY + 0.6, 0, 0xf85149, 40, 2.5, 5);
+        ev(`✕ ${tag(c)} CI failed · ${esc(p.title)}`, 'bad');
+      } else if (state === 'review'){
+        ev(`⏳ ${tag(c)} CI green, waiting for human · ${esc(p.title)}`, 'meh');
+      } else if (state === 'shipped'){
+        emit(27, 1.5, 0, 0x3fb950, 50, 3, 7);
+        ev(`🚀 ${tag(c)} merged · ${esc(p.title)}`, 'good');
+      }
     }
   }
-  liveMap.forEach(c=>{ if(!keep.has(c)) c.state='gone'; });
-  lastPoll=Date.now();
-}
-async function gh(repo,path,tok){
-  const r=await fetch(`https://api.github.com/repos/${repo}${path}`,{headers:{Accept:'application/vnd.github+json',...(tok&&{Authorization:'Bearer '+tok})}});
-  if(r.ok) return r.json();
-  const e=new Error(r.status===404?'Repo not found, or it is private (private repos need a token)':r.status===403||r.status===429?'GitHub rate limit reached: add a token, or wait a few minutes':`GitHub said ${r.status}`);
-  e.stop=r.status===404; throw e;
+  liveMap.forEach(c => { if (!keep.has(c)) c.state = 'gone'; });
+  lastPoll = Date.now();
 }
 
-// ================= modes =================
-const say=t=>$('status').textContent=t;
-function reset(){
-  crates.forEach(c=>{scene.remove(c.mesh);c.mat.dispose()}); crates=[]; pickables.length=0; liveMap.clear(); select(null);
-  AGENTS.forEach(a=>a.s=blank()); simT=0; lastPoll=0; events.length=0; $('events').innerHTML='';
+async function gh(repo, path, tok){
+  const r = await fetch(`https://api.github.com/repos/${repo}${path}`, {
+    headers: {Accept: 'application/vnd.github+json', ...(tok && {Authorization: 'Bearer ' + tok})}
+  });
+  if (r.ok) return r.json();
+  const e = new Error(r.status === 404 ? 'Repo not found, or it is private' : r.status === 403 || r.status === 429 ? 'GitHub rate limit reached: add a token' : `GitHub said ${r.status}`);
+  e.stop = r.status === 404; throw e;
 }
-function ui(live,label){
-  document.body.classList.toggle('live',live);
-  const p=$('modepill'); p.textContent=label; p.classList.toggle('live',live);
-  $('l-spend').textContent=live?'CI spend (est.)':'CI spend'; $('l-clock').textContent=live?'Last poll':'Sim time';
-  AGENTS.forEach(a=>{const show=!a.liveOnly||live; a.robot.visible=show; a.lbl._o.visible=show;});
+
+// ================= Mode Switcher =================
+const say = t => $('status').textContent = t;
+function reset(){
+  crates.forEach(c => { scene.remove(c.mesh); c.mat.dispose(); c.tex.dispose(); c.beaconMat.dispose(); });
+  crates = []; pickables.length = 0; liveMap.clear(); select(null);
+  AGENTS.forEach(a => a.s = blank()); simT = 0; lastPoll = 0; events.length = 0; $('events').innerHTML = '';
+}
+function ui(live, labelText){
+  document.body.classList.toggle('live', live);
+  const p = $('modepill'); p.textContent = labelText; p.classList.toggle('live', live);
+  $('l-spend').textContent = live ? 'CI spend (est.)' : 'CI spend'; $('l-clock').textContent = live ? 'Last poll' : 'Sim time';
+  AGENTS.forEach(a => { const show = !a.liveOnly || live; a.robot.visible = show; a.lbl._o.visible = show; });
 }
 function startDemo(){
-  liveEpoch++; mode='sim'; reset(); setStages(SIM_STAGES); ui(false,'SIMULATED'); say('');
-  for(let i=0;i<5;i++) spawn(AGENTS[i]);
-  try{ history.replaceState(null,'',location.pathname); }catch{}
+  liveEpoch++; mode = 'sim'; reset(); setStages(SIM_STAGES); ui(false, 'SIMULATED'); say('');
+  for (let i = 0; i < 5; i++) spawn(AGENTS[i]);
+  try { history.replaceState(null, '', location.pathname); } catch {}
 }
 async function startLive(repo){
-  const me=++liveEpoch, tok=$('tok').value.trim(), every=tok?15:150; // 2 requests per poll; 60/hour without a token
-  mode='live'; reset(); setStages(LIVE_STAGES); ui(true,'LIVE · '+repo); say('Loading '+repo+'…');
-  try{ history.replaceState(null,'','?repo='+repo); }catch{}
-  while(me===liveEpoch){
-    try{
-      const [prs,rr]=await Promise.all([gh(repo,'/pulls?state=all&sort=updated&direction=desc&per_page=30',tok),gh(repo,'/actions/runs?per_page=100',tok)]);
-      if(me!==liveEpoch) return;
-      applyLive(prs,rr.workflow_runs||[]);
-      say(!prs.length?'No pull requests in this repo yet':!rr.total_count?`${repo} · ${prs.length} PRs, but no CI runs found (Actions off?)`:`${repo} · ${prs.length} newest PRs · refreshes every ${every}s${tok?'':' (no token)'}`);
-    }catch(e){ if(me!==liveEpoch) return; say('⚠ '+e.message); if(e.stop) return; }
-    await sleep(every*1000);
+  const me = ++liveEpoch, tok = $('tok').value.trim(), every = tok ? 15 : 150;
+  mode = 'live'; reset(); setStages(LIVE_STAGES); ui(true, 'LIVE · ' + repo); say('Loading ' + repo + '…');
+  try { history.replaceState(null, '', '?repo=' + repo); } catch {}
+  while (me === liveEpoch){
+    try {
+      const [prs, rr] = await Promise.all([
+        gh(repo, '/pulls?state=all&sort=updated&direction=desc&per_page=30', tok),
+        gh(repo, '/actions/runs?per_page=100', tok)
+      ]);
+      if (me !== liveEpoch) return;
+      applyLive(prs, rr.workflow_runs || []);
+      say(!prs.length ? 'No pull requests in this repo yet' : !rr.total_count ? `${repo} · ${prs.length} PRs, but no CI runs found` : `${repo} · ${prs.length} PRs · refresh ${every}s`);
+    } catch (e){ if (me !== liveEpoch) return; say('⚠ ' + e.message); if (e.stop) return; }
+    await sleep(every * 1000);
   }
 }
-const REPO=/^[\w.-]+\/[\w.-]+$/;
-$('go').onclick=()=>{ const r=$('repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\/$/,''); REPO.test(r)?startLive(r):say('Enter a repo as owner/name'); };
-$('repo').onkeydown=e=>{ if(e.key==='Enter') $('go').click(); };
-$('demo').onclick=startDemo;
 
-// ================= loop =================
-const clock=new THREE.Clock();
-{ const q=new URLSearchParams(location.search).get('repo'); if(q&&REPO.test(q)){ $('repo').value=q; startLive(q); } else startDemo(); }
-renderer.setAnimationLoop(()=>{
-  const rdt=Math.min(clock.getDelta(),.05), dt=rdt*speed;
-  if(dt&&mode==='sim') step(dt);
-  visuals(rdt,dt,clock.elapsedTime);
-  controls.update(); composer.render(); labelR.render(scene,camera);
+const REPO = /^[\w.-]+\/[\w.-]+$/;
+$('go').onclick = () => {
+  const r = $('repo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/$/, '');
+  REPO.test(r) ? startLive(r) : say('Enter repo as owner/name');
+};
+$('repo').onkeydown = e => { if (e.key === 'Enter') $('go').click(); };
+$('demo').onclick = startDemo;
+
+// Initialize stored theme
+try {
+  const savedTheme = localStorage.getItem('prism-theme');
+  if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+} catch {}
+applyTheme();
+
+// ================= Render Loop =================
+const clock = new THREE.Clock();
+{
+  const q = new URLSearchParams(location.search).get('repo');
+  if (q && REPO.test(q)){ $('repo').value = q; startLive(q); } else startDemo();
+}
+
+renderer.setAnimationLoop(() => {
+  const rdt = Math.min(clock.getDelta(), 0.05), dt = rdt * speed;
+  if (dt && mode === 'sim') step(dt);
+  visuals(rdt, dt, clock.elapsedTime);
+  controls.update(); composer.render(); labelR.render(scene, camera);
 });
 </script>
 </body></html>

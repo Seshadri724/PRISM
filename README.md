@@ -5,18 +5,17 @@ Single-file visualizers for CI/CD pipelines. Run a simulated demo, or watch real
 | File | What it is |
 |---|---|
 | `agent-factory.html` | **PRISM: Agent Factory** — a 3D factory showing AI coding agents' pull requests moving through CI. Simulated demo, or live GitHub data for any public repo. |
-| `pipeline3d.html` | **PRISM: Pipeline Yard** — a 3D, game-like warehouse view of one pipeline, with insights, replay and AI help. Live GitHub data. |
 | `pipeline.html` | A flat 2D graph with runner cards and a log |
 
 ## Run it
 
-`pipeline.html` opens by double-clicking. The two 3D pages load Three.js as an ES module, so serve the folder (needs internet for the CDN):
+`pipeline.html` opens by double-clicking. `agent-factory.html` loads Three.js as an ES module, so serve the folder (needs internet for the CDN):
 
 ```bash
 python -m http.server 8765
 ```
 
-Then open `http://localhost:8765/agent-factory.html` or `http://localhost:8765/pipeline3d.html`.
+Then open `http://localhost:8765/agent-factory.html` (or `http://localhost:8765/index.html`).
 
 ## PRISM: Agent Factory (3D)
 
@@ -73,65 +72,6 @@ Done: the view only reads crate objects, and two sources fill them (the simulato
 
 Private repos should never need a token pasted into a website. Use the Action, the CLI or the App.
 
-## PRISM: Pipeline Yard (3D)
-
-| Warehouse | Pipeline |
-|---|---|
-| Bays on the floor | Stages, left to right (Trigger first) |
-| Machines | Jobs. Ring and pad glow amber (running), green (passed), red (failed). The bar shows progress, the cubes show steps. |
-| Crates on conveyors | Artifacts moving to the next stage while it runs |
-| Forklifts | Runners. They drive to the job they pick up; the pool grows with parallel jobs. |
-| Smoke and blinking light | A failed job. Downstream jobs go grey (skipped). |
-| Truck leaving | The whole run passed |
-| Gold pad | The job is on the **critical path** (shown once the run finishes) |
-
-**Controls:** drag to orbit, right-drag to pan, scroll to zoom, click a machine for its steps. `T` toggles TV mode, `Esc` leaves it.
-
-### Features
-
-- **Exact job graph.** Live mode reads `needs:` from the run's workflow file, so stages and conveyors match the real dependency graph, including jobs that skip a stage. If the file can't be read it falls back to a timing guess.
-- **Run insights.** Duration, billable minutes and estimated cost (GitHub-hosted Linux, $0.008/min, each job rounded up to a minute), critical path, the slowest job on it, jobs that wait on a slower sibling, runner queue wait, recent failure rate and retries (flaky hint).
-- **Recent-runs bars.** Height is duration, colour is result. Click a bar to load that run.
-- **Replay.** Every state change is recorded. Drag the slider or press ▶ to replay the run, including forklift movement. `LIVE` jumps back.
-- **Ask Claude.** Click a failed machine → *Explain this failure*, or type a question. With an Anthropic API key it calls Claude (`claude-sonnet-5-5`) with the run state and log tail. Without a key it uses offline pattern hints. The key stays in memory and is sent only to `api.anthropic.com`.
-- **Fleet.** Enter several repos separated by commas. Each gets a status chip, and clicking one switches the yard to it.
-- **Alerts.** The 🔔 button turns on a chime or alarm and a desktop notification when a run finishes. Green-run streaks and fastest-run records show as toasts.
-- **TV mode and share links.** 📺 hides the controls and slowly rotates the camera, for an office screen. 🔗 copies a link such as `?repo=owner/repo&tv=1&theme=dark` (a token is never put in the link).
-- **Themes.** Follows the OS light/dark setting; 🌓 overrides and is remembered.
-
-### URL parameters
-
-| Param | Effect |
-|---|---|
-| `repo=a/b,c/d` | Start watching live instead of the demo |
-| `tv=1` | Start in TV mode |
-| `theme=light\|dark` | Force a theme |
-| `selftest=1` | Run the built-in checks for the graph, layout and critical-path code; the result appears in the message line |
-
-## Using it
-
-- **Run demo** simulates a full run. Tick **make tests fail** to break Jest and try *Explain this failure*.
-- **Watch live** takes `owner/repo` and an optional GitHub token. Without a token GitHub allows about 60 API requests per hour; a running pipeline polls every 10 seconds and a finished one every 30. The token is only sent to `api.github.com` and is never stored.
-
-## Known limits
-
-- **Live logs show job and step changes only.** Real log text needs an authenticated log download, which browsers can't do directly. Failed jobs include their GitHub annotations instead.
-- **Runner assignment is simulated.** The page hands running jobs to forklifts itself and doesn't read real runner names.
-- **Cost is an estimate** for GitHub-hosted Linux runners; self-hosted, larger or macOS/Windows runners differ.
-- **The AI key lives in the browser.** Fine for personal use. A shared deployment should proxy the call through a server.
-- **Matrix jobs and reusable workflows** are matched by name; unusual names can fall back to the timing layout.
-
-## Roadmap (needs a server and credentials)
-
-These can't be done in a static page:
-
-1. **GitHub App with webhooks** — instant updates, no polling or rate limits, one-click install.
-2. **Real log streaming** through a small backend that downloads logs with the user's token.
-3. **Slack and Teams alerts** with a link into the yard.
-4. **Auto-fix pull requests** — Claude proposes the patch for a failing test, lockfile or config.
-5. **Multi-org dashboard** with history, flaky-test tracking over time, SSO and a self-hosted option.
-6. **More CI systems** — GitLab, Jenkins, CircleCI, Buildkite, Argo.
-
 ## Tech
 
-Plain HTML and JS. PRISM: Pipeline Yard uses [Three.js](https://threejs.org) 0.160 and js-yaml 4.1; PRISM: Agent Factory uses Three.js 0.170 with its bloom post-processing, plus Google Fonts. All come from CDNs (jsDelivr, Google Fonts). No build step and nothing to install.
+Plain HTML and JS. PRISM: Agent Factory uses [Three.js](https://threejs.org) 0.170 with bloom post-processing, plus Google Fonts. All come from CDNs (jsDelivr, Google Fonts). No build step and nothing to install.

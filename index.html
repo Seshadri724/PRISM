@@ -20,6 +20,61 @@
   --bad: #f85149;
   --acc: #22d3ee;
   --acc2: #06b6d4;
+  --particle: 34, 211, 238;
+  --topbar-bg: rgba(10, 14, 20, 0.6);
+  --footer-bg: rgba(10, 14, 20, 0.5);
+  --tag-bg: rgba(255, 255, 255, 0.05);
+  --hover-bg: rgba(255, 255, 255, 0.04);
+  --card-hover-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(34, 211, 238, 0.06);
+  --grad-start: #22d3ee;
+  --grad-mid: #a78bfa;
+  --grad-end: #f472b6;
+}
+:root[data-theme=light] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --panel: rgba(255, 255, 255, 0.82);
+  --line: rgba(0, 0, 0, 0.1);
+  --t: #1f2328;
+  --m: #5a6370;
+  --ok: #1a7f37;
+  --warn: #9a6700;
+  --bad: #cf222e;
+  --acc: #0891b2;
+  --acc2: #0e7490;
+  --particle: 8, 145, 178;
+  --topbar-bg: rgba(240, 244, 248, 0.75);
+  --footer-bg: rgba(240, 244, 248, 0.65);
+  --tag-bg: rgba(0, 0, 0, 0.05);
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  --card-hover-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 0 40px rgba(8, 145, 178, 0.08);
+  --grad-start: #0891b2;
+  --grad-mid: #7c3aed;
+  --grad-end: #db2777;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme=dark]) {
+    --bg: #f0f4f8;
+    --bg2: #ffffff;
+    --panel: rgba(255, 255, 255, 0.82);
+    --line: rgba(0, 0, 0, 0.1);
+    --t: #1f2328;
+    --m: #5a6370;
+    --ok: #1a7f37;
+    --warn: #9a6700;
+    --bad: #cf222e;
+    --acc: #0891b2;
+    --acc2: #0e7490;
+    --particle: 8, 145, 178;
+    --topbar-bg: rgba(240, 244, 248, 0.75);
+    --footer-bg: rgba(240, 244, 248, 0.65);
+    --tag-bg: rgba(0, 0, 0, 0.05);
+    --hover-bg: rgba(0, 0, 0, 0.04);
+    --card-hover-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 0 40px rgba(8, 145, 178, 0.08);
+    --grad-start: #0891b2;
+    --grad-mid: #7c3aed;
+    --grad-end: #db2777;
+  }
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -58,7 +113,7 @@ body {
   justify-content: space-between;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  background: rgba(10, 14, 20, 0.6);
+  background: var(--topbar-bg);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -100,7 +155,7 @@ body {
 .nav-links a:hover {
   color: var(--t);
   border-color: var(--line);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--hover-bg);
 }
 .gh-link {
   display: flex;
@@ -121,17 +176,17 @@ body {
   gap: 6px;
   font: 600 11px 'JetBrains Mono', monospace;
   color: var(--acc);
-  border: 1px solid rgba(34, 211, 238, 0.3);
+  border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
   border-radius: 99px;
   padding: 4px 14px;
   letter-spacing: 0.1em;
   margin-bottom: 28px;
-  background: rgba(34, 211, 238, 0.06);
+  background: color-mix(in srgb, var(--acc) 8%, transparent);
   animation: badge-glow 3s ease-in-out infinite alternate;
 }
 @keyframes badge-glow {
-  from { box-shadow: 0 0 12px rgba(34, 211, 238, 0.08); }
-  to   { box-shadow: 0 0 24px rgba(34, 211, 238, 0.18); }
+  from { box-shadow: 0 0 12px color-mix(in srgb, var(--acc) 10%, transparent); }
+  to   { box-shadow: 0 0 24px color-mix(in srgb, var(--acc) 22%, transparent); }
 }
 .hero h1 {
   font-size: clamp(36px, 6vw, 64px);
@@ -141,7 +196,7 @@ body {
   margin-bottom: 20px;
 }
 .hero h1 .grad {
-  background: linear-gradient(135deg, var(--acc) 0%, #a78bfa 50%, #f472b6 100%);
+  background: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-mid) 50%, var(--grad-end) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -160,7 +215,7 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 24px;
   padding: 20px 32px 80px;
-  max-width: 1200px;
+  max-width: 960px;
   width: 100%;
 }
 .card {
@@ -186,7 +241,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 16px;
-  background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 0%), rgba(34, 211, 238, 0.06), transparent 60%);
+  background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--acc) 8%, transparent), transparent 60%);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s;
@@ -194,9 +249,8 @@ body {
 .card:hover::before { opacity: 1; }
 .card:hover {
   transform: translateY(-6px);
-  border-color: rgba(34, 211, 238, 0.25);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
-              0 0 40px rgba(34, 211, 238, 0.06);
+  border-color: color-mix(in srgb, var(--acc) 30%, transparent);
+  box-shadow: var(--card-hover-shadow);
 }
 .card-icon {
   width: 48px;
@@ -209,7 +263,6 @@ body {
   flex-shrink: 0;
 }
 .card-icon.factory { background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(34, 211, 238, 0.05)); color: var(--acc); }
-.card-icon.yard    { background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(167, 139, 250, 0.05)); color: #a78bfa; }
 .card-icon.flat    { background: linear-gradient(135deg, rgba(63, 185, 80, 0.15), rgba(63, 185, 80, 0.05)); color: var(--ok); }
 .card-label {
   font: 600 10px 'JetBrains Mono', monospace;
@@ -240,7 +293,7 @@ body {
   font: 600 10px 'JetBrains Mono', monospace;
   padding: 3px 10px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--tag-bg);
   color: var(--m);
   letter-spacing: 0.04em;
 }
@@ -277,7 +330,7 @@ body {
   gap: 12px;
   font-size: 12px;
   color: var(--m);
-  background: rgba(10, 14, 20, 0.5);
+  background: var(--footer-bg);
   backdrop-filter: blur(8px);
 }
 .footer a {
@@ -296,6 +349,29 @@ body {
   padding: 2px 8px;
   border-radius: 5px;
   border: 1px solid var(--line);
+}
+
+/* ── Theme toggle ── */
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--m);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s;
+  padding: 0;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  color: var(--t);
+  border-color: var(--acc);
+  background: var(--hover-bg);
 }
 
 /* ── Responsive ── */
@@ -322,12 +398,12 @@ body {
     </a>
     <nav class="nav-links">
       <a href="agent-factory.html">Agent Factory</a>
-      <a href="pipeline3d.html">Pipeline Yard</a>
       <a href="pipeline.html">Pipeline 2D</a>
       <a class="gh-link" href="https://github.com/Seshadri724/PRISM" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         GitHub
       </a>
+      <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">🌓</button>
     </nav>
   </header>
 
@@ -335,7 +411,7 @@ body {
   <section class="hero">
     <div class="hero-badge">◆ OPEN SOURCE CI/CD VISUALIZERS</div>
     <h1>See your pipelines<br><span class="grad">come alive</span></h1>
-    <p>Interactive 3D visualizers for GitHub Actions. Watch CI runs as factories, warehouses, and live graphs — powered by nothing but HTML and JavaScript.</p>
+    <p>Interactive visualizers for GitHub Actions. Watch CI runs as animated factories and live graphs — powered by nothing but HTML and JavaScript.</p>
   </section>
 
   <!-- Cards -->
@@ -345,25 +421,11 @@ body {
       <div class="card-icon factory">🏭</div>
       <span class="card-label">3D Visualizer</span>
       <h2>Agent Factory</h2>
-      <p>A 3D factory floor where AI coding agents' pull requests move through CI stages — lint, test, build, security, review, deploy. Track break rates, CI spend, and review queues per agent.</p>
+      <p>A 3D factory floor where AI coding agents' pull requests move through CI stages — lint, test, build, security, review, deploy. Features the signature PRISM sorter, track break rates, CI spend, and review queues per agent.</p>
       <div class="card-tags">
         <span>Three.js</span>
         <span>Bloom</span>
-        <span>Live GitHub</span>
-        <span>Simulated</span>
-      </div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="pipeline3d.html" id="card-yard">
-      <div class="card-icon yard">🏗️</div>
-      <span class="card-label">3D Visualizer</span>
-      <h2>Pipeline Yard</h2>
-      <p>A warehouse-style view of a single pipeline run with exact job graphs, forklifts as runners, replay controls, cost insights, and Ask Claude for failure analysis.</p>
-      <div class="card-tags">
-        <span>Three.js</span>
-        <span>Replay</span>
-        <span>Claude AI</span>
+        <span>PRISM Sorter</span>
         <span>Live GitHub</span>
       </div>
       <div class="card-arrow">→</div>
@@ -397,11 +459,36 @@ body {
 </div>
 
 <script>
+/* ── Theme toggle ── */
+(function() {
+  const root = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  const stored = localStorage.getItem('prism-theme');
+
+  function isLight() {
+    const attr = root.getAttribute('data-theme');
+    if (attr) return attr === 'light';
+    return window.matchMedia('(prefers-color-scheme: light)').matches;
+  }
+
+  if (stored) root.setAttribute('data-theme', stored);
+
+  btn.addEventListener('click', () => {
+    const next = isLight() ? 'dark' : 'light';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('prism-theme', next);
+  });
+})();
+
 /* ── Particle background ── */
 (function() {
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas.getContext('2d');
   let w, h, particles, mouse = { x: -1000, y: -1000 };
+
+  function getParticleRGB() {
+    return getComputedStyle(document.documentElement).getPropertyValue('--particle').trim();
+  }
 
   function resize() {
     w = canvas.width = window.innerWidth;
@@ -426,6 +513,7 @@ body {
 
   function draw() {
     ctx.clearRect(0, 0, w, h);
+    const rgb = getParticleRGB();
     const maxDist = 140;
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
@@ -438,7 +526,7 @@ body {
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(34, 211, 238, ${p.o})`;
+      ctx.fillStyle = `rgba(${rgb}, ${p.o})`;
       ctx.fill();
 
       for (let j = i + 1; j < particles.length; j++) {
@@ -449,7 +537,7 @@ body {
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(q.x, q.y);
-          ctx.strokeStyle = `rgba(34, 211, 238, ${0.06 * (1 - d / maxDist)})`;
+          ctx.strokeStyle = `rgba(${rgb}, ${0.06 * (1 - d / maxDist)})`;
           ctx.lineWidth = 0.5;
           ctx.stroke();
         }
@@ -462,7 +550,7 @@ body {
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(mouse.x, mouse.y);
-        ctx.strokeStyle = `rgba(34, 211, 238, ${0.1 * (1 - md / 200)})`;
+        ctx.strokeStyle = `rgba(${rgb}, ${0.1 * (1 - md / 200)})`;
         ctx.lineWidth = 0.6;
         ctx.stroke();
       }
