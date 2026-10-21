@@ -1,0 +1,243 @@
+<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pipeline Live</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--b:#30363d;--t:#e6edf3;--m:#8b949e;--ok:#3fb950;--run:#d29922;--bad:#f85149;--q:#6e7681}
+@media(prefers-color-scheme:light){:root{--bg:#f6f8fa;--card:#fff;--b:#d0d7de;--t:#1f2328;--m:#656d76;--ok:#1a7f37;--run:#9a6700;--bad:#cf222e;--q:#8c959f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font:14px/1.4 system-ui,sans-serif;padding:20px 16px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+h1{font-size:18px;margin:0 8px 0 0}
+h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--m);margin:28px 0 10px}
+input,button{font:inherit;color:var(--t);background:var(--card);border:1px solid var(--b);border-radius:6px;padding:6px 10px}
+input{width:190px}button{cursor:pointer}button:hover{border-color:var(--m)}
+label{color:var(--m);display:flex;gap:6px;align-items:center}
+#pill{margin-left:auto;padding:4px 12px;border-radius:99px;border:1px solid currentColor;font-weight:600;font-variant-numeric:tabular-nums}
+#msg{width:100%;color:var(--m);font-size:12px;min-height:16px}
+#prog{height:3px;background:var(--b);border-radius:2px;margin-bottom:20px;overflow:hidden}
+#prog i{display:block;height:100%;width:0;background:var(--ok);transition:width .4s}
+#wrap{position:relative;overflow-x:auto;padding-bottom:12px}
+#stages{display:flex;gap:70px;position:relative;min-width:max-content}
+.stage{display:flex;flex-direction:column;gap:16px;justify-content:center;min-width:210px}
+.stage>h3{margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--m)}
+svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+path{fill:none;stroke:var(--b);stroke-width:2}
+g.run path{stroke:var(--run);stroke-dasharray:6 6;animation:flow .5s linear infinite}
+g.ok path{stroke:var(--ok)}
+circle{fill:var(--run);display:none;filter:drop-shadow(0 0 4px var(--run))}
+g.run circle{display:block}
+@keyframes flow{to{stroke-dashoffset:-12}}
+.job{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:10px 12px;position:relative;z-index:1;overflow:hidden;transition:border-color .3s,box-shadow .3s}
+.hd{display:flex;gap:8px;align-items:center}.hd b{flex:1}.tm{color:var(--m);font-size:12px;font-variant-numeric:tabular-nums}
+.rn{font-size:11px;color:var(--m);margin-top:4px}.rn:empty{display:none}
+.ic{width:16px;height:16px;border-radius:50%;border:2px solid var(--q);display:grid;place-items:center;font:700 10px/1 system-ui;flex:none}
+ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:3px;font-size:12px;color:var(--m)}
+li{display:flex;gap:7px;align-items:center}
+li i{width:8px;height:8px;border-radius:50%;background:var(--q);flex:none}
+.s-running{border-color:var(--run);box-shadow:0 0 0 0 var(--run);animation:pulse 1.6s infinite}
+.s-running .ic{border-color:var(--run) var(--run) transparent transparent;animation:spin .8s linear infinite}
+.job.s-running::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 35%,color-mix(in srgb,var(--run) 14%,transparent),transparent 65%);background-size:250% 100%;animation:shim 1.8s linear infinite}
+.s-success{border-color:var(--ok)}.s-success .ic{background:var(--ok);border-color:var(--ok);color:#fff}.s-success .ic::after{content:"✓"}
+.s-failure{border-color:var(--bad)}.s-failure .ic{background:var(--bad);border-color:var(--bad);color:#fff}.s-failure .ic::after{content:"✕"}
+.s-skipped{opacity:.5}.s-skipped .ic::after{content:"–"}
+li.s-running{color:var(--t)}li.s-running i{background:var(--run);animation:blink .6s infinite alternate}
+li.s-running::after{content:"";flex:1;max-width:60px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--run) 0 8px,transparent 8px) 0 0/14px 100%;animation:stripe .5s linear infinite}
+li.s-success i{background:var(--ok)}li.s-failure i{background:var(--bad)}li.s-failure{color:var(--bad)}
+li.s-running,li.s-success,li.s-failure,li.s-skipped{border:0;box-shadow:none;animation:none;opacity:1}
+#agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.agent{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:10px 12px;transition:border-color .3s}
+.agent.busy{border-color:var(--run)}
+.agent .gear{display:inline-block;color:var(--m)}.agent.busy .gear{color:var(--run);animation:spin 2s linear infinite}
+.led{width:8px;height:8px;border-radius:50%;background:var(--q);flex:none}.agent.busy .led{background:var(--run);animation:blink .4s infinite alternate}
+.aj{font-size:12px;color:var(--m);margin:6px 0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.agent.busy .aj{color:var(--t)}
+.mt{display:flex;gap:8px;align-items:center;font-size:10px;color:var(--m);margin-top:3px}.mt span{width:28px}
+.mt u{flex:1;height:5px;background:var(--b);border-radius:3px;overflow:hidden}
+.mt i{display:block;height:100%;width:2%;background:var(--run);transition:width .25s}.agent:not(.busy) .mt i{background:var(--q)}
+#log{background:#010409;color:#c9d1d9;border:1px solid var(--b);border-radius:10px;font:12px/1.55 ui-monospace,Consolas,monospace;height:240px;overflow:auto;padding:10px 12px}
+#log div{white-space:pre-wrap;word-break:break-word}
+#log .ts{color:#6e7681;margin-right:8px}#log .jb{color:#58a6ff;margin-right:6px}
+#log .ok{color:#3fb950}#log .bad{color:#f85149}#log .run{color:#d29922}#log .dim{color:#8b949e}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{to{opacity:.25}}
+@keyframes shim{from{background-position:100% 0}to{background-position:-150% 0}}
+@keyframes stripe{to{background-position:14px 0}}
+@keyframes pulse{70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){*,::before,::after{animation:none!important;transition:none!important}circle{display:none!important}}
+</style>
+<header>
+  <h1>⚙ Pipeline</h1>
+  <button id="demo">▶ Run demo</button>
+  <label><input type="checkbox" id="fail"> make tests fail</label>
+  <span style="flex:1"></span>
+  <input id="repo" placeholder="owner/repo (GitHub)">
+  <input id="tok" type="password" placeholder="token (optional)">
+  <button id="live">Watch live</button>
+  <span id="pill"></span>
+  <div id="msg"></div>
+</header>
+<div id="prog"><i></i></div>
+<div id="wrap"><div id="stages"></div><svg id="svg"></svg></div>
+<h2>Runners</h2>
+<div id="agents"></div>
+<h2>Logs</h2>
+<div id="log" role="log" aria-live="polite"></div>
+
+<script>
+const $=id=>document.getElementById(id), sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let S={stages:[]}, sig='', epoch=0, edges=[], R=[1,2,3].map(n=>({name:'runner-'+n})), who=new Map(), prev=new Map();
+const reset=()=>{ who=new Map(); prev=new Map(); R.forEach(r=>r.job=null); $('log').innerHTML=''; };
+
+// ---------- render: build DOM when shape changes, else patch classes in place ----------
+const fmt=ms=>ms>=0?(ms/1000).toFixed(1)+'s':'';
+function draw(){
+  const s=JSON.stringify(S.stages.map(st=>st.map(j=>[j.name,j.steps.map(x=>x.n)])));
+  if(s!==sig){ sig=s; build(); }
+  const all=S.stages.flat(), real=all.filter(j=>!j.trig);
+
+  // runners: free agents whose job stopped, hand running jobs to a free agent (pool grows if needed)
+  R.forEach(r=>{ if(r.job&&!all.some(j=>j.name===r.job&&j.status==='running')) r.job=null; });
+  all.filter(j=>j.status==='running'&&!R.some(r=>r.job===j.name)).forEach(j=>{
+    let r=R.find(r=>!r.job); if(!r){ R.push(r={name:'runner-'+(R.length+1)}); buildAgents(); }
+    r.job=j.name; who.set(j.name,r.name);
+  });
+
+  // log status transitions (works for demo and live)
+  all.forEach(j=>{
+    const p=prev.get(j.name); prev.set(j.name,j.status);
+    if(p!==j.status&&(p||j.status!=='success')){
+      if(j.status==='running') log(`▶ ${j.name} picked up by ${who.get(j.name)}`,'run');
+      if(j.status==='success') log(`✓ ${j.name} succeeded in ${fmt(j.t1-j.t0)}`,'ok');
+      if(j.status==='failure') log(`✕ ${j.name} failed`,'bad');
+      if(j.status==='skipped'&&p) log(`– ${j.name} skipped`,'dim');
+    }
+    j.steps.forEach(x=>{ const k=j.name+'\0'+x.n, q=prev.get(k); prev.set(k,x.s);
+      if(q!==x.s&&x.s==='running') log('$ '+x.n,'',j.name);
+      if(q&&q!==x.s&&x.s==='failure') log(`✕ ${x.n}: process exited with code 1`,'bad',j.name);
+    });
+  });
+
+  S.stages.forEach((st,i)=>st.forEach((j,k)=>{
+    const el=$(`j${i}-${k}`); el.className='job s-'+j.status;
+    el.querySelector('.tm').textContent=j.t0?fmt((j.t1||Date.now())-j.t0):'';
+    el.querySelector('.rn').textContent=who.has(j.name)?'⛭ '+who.get(j.name):'';
+    j.steps.forEach((x,n)=>el.querySelectorAll('li')[n].className='s-'+x.s);
+  }));
+  edges.forEach(([i,m,k,g])=>{ // flows while target runs, green once source is done
+    const a=S.stages[i][m], b=S.stages[i+1][k];
+    g.setAttribute('class',b.status==='running'?'run':a.status==='success'&&b.status!=='queued'&&b.status!=='skipped'?'ok':'');
+  });
+  R.forEach((r,i)=>{
+    const el=$('a'+i), j=all.find(j=>j.name===r.job), x=j&&j.steps.find(x=>x.s==='running');
+    el.className='agent'+(j?' busy':'');
+    el.querySelector('.aj').textContent=j?`${j.name} › ${x?x.n:'starting…'}`:'idle — waiting for jobs';
+    el.querySelectorAll('.mt i').forEach(b=>b.style.width=(j?30+Math.random()*65:2+Math.random()*4)+'%');
+  });
+
+  const fail=all.some(j=>j.status==='failure'), running=all.some(j=>j.status==='running');
+  const st=fail?['failed','var(--bad)']:running?['running','var(--run)']:
+    real.length&&real.every(j=>j.status==='success'||j.status==='skipped')?['passed','var(--ok)']:['idle','var(--q)'];
+  const end=running?Date.now():Math.max(0,...all.map(j=>j.t1||0));
+  $('pill').textContent=st[0]+(S.t0&&end>S.t0?' · '+fmt(end-S.t0):''); $('pill').style.color=st[1];
+  const done=real.filter(j=>j.status!=='queued'&&j.status!=='running').length;
+  $('prog').firstChild.style.width=(real.length?done/real.length*100:0)+'%';
+  $('prog').firstChild.style.background=fail?'var(--bad)':'var(--ok)';
+}
+function build(){
+  $('stages').innerHTML=S.stages.map((st,i)=>`<div class=stage><h3>${st[0]?.trig?'Trigger':'Stage '+i}</h3>${st.map((j,k)=>
+    `<div class=job id=j${i}-${k}><div class=hd><span class=ic></span><b>${esc(j.name)}</b><span class=tm></span></div><div class=rn></div><ul>${
+      j.steps.map(x=>`<li><i></i>${esc(x.n)}</li>`).join('')}</ul></div>`).join('')}</div>`).join('');
+  edges=[]; let h='';
+  const dot=(n,b)=>`<circle r=3.5><animateMotion dur=1.1s begin=${b}s repeatCount=indefinite><mpath href=#e${n} /></animateMotion></circle>`;
+  S.stages.forEach((st,i)=>S.stages[i+1]?.forEach((_,k)=>st.forEach((_,m)=>{
+    const n=edges.length; edges.push([i,m,k,null,`j${i}-${m}`,`j${i+1}-${k}`]);
+    h+=`<g><path id=e${n} />${dot(n,0)}${dot(n,.55)}</g>`;
+  })));
+  $('svg').innerHTML=h; [...$('svg').children].forEach((g,n)=>edges[n][3]=g);
+  layout();
+}
+function buildAgents(){
+  $('agents').innerHTML=R.map((r,i)=>`<div class=agent id=a${i}><div class=hd><span class=led></span><b>${r.name}</b><span class=gear>⚙</span></div>
+    <div class=tm>ubuntu-latest · 4 vCPU</div><div class=aj></div><div class=mt><span>CPU</span><u><i></i></u></div><div class=mt><span>MEM</span><u><i></i></u></div></div>`).join('');
+}
+function layout(){ // curved connector from right-middle of source to left-middle of target
+  const o=$('stages').getBoundingClientRect();
+  edges.forEach(([,,,g,A,B])=>{
+    const a=$(A).getBoundingClientRect(), b=$(B).getBoundingClientRect(), x1=a.right-o.left, y1=a.top+a.height/2-o.top, x2=b.left-o.left, y2=b.top+b.height/2-o.top, c=(x2-x1)/2;
+    g.firstChild.setAttribute('d',`M${x1},${y1}C${x1+c},${y1} ${x2-c},${y2} ${x2},${y2}`);
+  });
+}
+function log(t,c='',job){
+  const L=$('log'), stick=L.scrollTop+L.clientHeight>=L.scrollHeight-8, d=document.createElement('div');
+  d.innerHTML=`<span class=ts>${new Date().toLocaleTimeString('en-GB')}</span>${job?`<span class=jb>[${esc(job)}]</span>`:''}`;
+  d.append(t); d.className=c; L.append(d);
+  while(L.children.length>300) L.firstChild.remove();
+  if(stick) L.scrollTop=L.scrollHeight;
+}
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+addEventListener('resize',layout); buildAgents(); setInterval(draw,250);
+
+// ---------- demo simulation ----------
+const D=[[['Setup',['Checkout','Install deps','Restore cache']]],
+ [['Lint',['ESLint','Prettier']],['Unit tests',['Jest','Coverage']],['Typecheck',['tsc']]],
+ [['Build',['Compile','Bundle','Docker image']]],
+ [['Deploy',['Push image','Rollout','Smoke test']]]];
+const OUT={Checkout:['Fetching origin/main…','HEAD is now at {sha}'],'Install deps':['npm ci','added 1287 packages in 9s'],'Restore cache':['Cache restored: node-modules-8f3a1c'],
+ ESLint:['✔ 0 problems'],Prettier:['All matched files use Prettier code style!'],Jest:['PASS src/utils.test.ts','PASS src/cart.test.ts'],Coverage:['Statements 91.2% | Branches 84.7%'],
+ tsc:['Found 0 errors.'],Compile:['vite v6 building for production…','✓ 412 modules transformed'],Bundle:['dist/assets/index.js  182 kB │ gzip: 58 kB'],
+ 'Docker image':['#5 [build 3/6] RUN npm run build','#9 exporting layers','naming to ghcr.io/acme/app:{sha}'],'Push image':['pushing ghcr.io/acme/app:{sha}…','digest: sha256:9f2c41e7…'],
+ Rollout:['deployment "app" 1 of 3 replicas updated','deployment "app" successfully rolled out'],'Smoke test':['GET /health → 200 (34ms)']};
+$('demo').onclick=async()=>{
+  const me=++epoch, sha=Math.random().toString(16).slice(2,9);
+  $('msg').textContent='Demo run (simulated)'; reset();
+  S={t0:Date.now(),stages:[[{trig:1,name:'push · '+sha,status:'success',steps:[{n:'main',s:'success'},{n:'feat: add checkout flow',s:'success'}]}],
+    ...D.map(st=>st.map(([name,steps])=>({name,status:'queued',steps:steps.map(n=>({n,s:'queued'}))})))]};
+  log(`● push to main (${sha}) triggered workflow "CI/CD"`,'dim'); draw();
+  let broke=false;
+  const job=async j=>{
+    await sleep(Math.random()*500); if(me!==epoch) return; // queue wait before a runner picks it up
+    j.status='running'; j.t0=Date.now(); draw();
+    for(const x of j.steps){
+      if(me!==epoch) return; x.s='running'; draw();
+      const out=OUT[x.n]||[], T=(700+Math.random()*1200)/(out.length+1);
+      for(const l of out){ await sleep(T); if(me!==epoch) return; log(l.replace('{sha}',sha),'dim',j.name); }
+      await sleep(T); if(me!==epoch) return;
+      if($('fail').checked&&x.n==='Jest'){
+        log('FAIL src/api.test.ts › POST /orders — expected 200, received 500','bad',j.name);
+        x.s='failure'; j.steps.filter(y=>y.s==='queued').forEach(y=>y.s='skipped'); j.status='failure'; j.t1=Date.now(); broke=true; draw(); return;
+      }
+      x.s='success';
+    }
+    j.status='success'; j.t1=Date.now(); draw();
+  };
+  for(const st of S.stages.slice(1)){
+    if(broke){ st.forEach(j=>{j.status='skipped';j.steps.forEach(x=>x.s='skipped')}); continue; }
+    await Promise.all(st.map(job)); if(me!==epoch) return;
+  }
+  draw(); log(broke?'Workflow failed — deploy skipped':'🚀 Deployed to production',broke?'bad':'ok');
+};
+
+// ---------- live GitHub Actions (latest run of a repo, polled) ----------
+const map=(st,c)=>st==='completed'?(c==='success'?'success':c==='skipped'||c==='cancelled'?'skipped':'failure'):st==='in_progress'?'running':'queued';
+$('live').onclick=async()=>{
+  const me=++epoch, repo=$('repo').value.trim(), h=$('tok').value?{Authorization:'Bearer '+$('tok').value}:{};
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)) return $('msg').textContent='Enter owner/repo';
+  const api=async u=>{const r=await fetch('https://api.github.com/repos/'+repo+u,{headers:h}); if(!r.ok) throw Error(r.status+' '+(r.status==403?'rate limited — add a token':r.statusText)); return r.json()};
+  reset(); log('Watching '+repo,'dim');
+  while(me===epoch){
+    try{
+      const run=(await api('/actions/runs?per_page=1')).workflow_runs[0]; if(!run) return $('msg').textContent='No runs found';
+      const jobs=(await api(`/actions/runs/${run.id}/jobs`)).jobs.map(j=>({name:j.name,status:map(j.status,j.conclusion),t0:j.started_at&&Date.parse(j.started_at),t1:j.completed_at&&Date.parse(j.completed_at),
+        steps:j.steps.map(x=>({n:x.name,s:map(x.status,x.conclusion)}))}));
+      // ponytail: stages inferred from timing (API has no job graph); parse `needs` from workflow YAML if exact layout matters
+      const ordered=jobs.sort((a,b)=>(a.t0||1e15)-(b.t0||1e15)), stages=[]; let end=0;
+      for(const j of ordered){ const last=stages[stages.length-1]; if(last&&(!j.t0||j.t0<end||!end)){last.push(j);end=Math.max(end,j.t1||Infinity)} else {stages.push([j]);end=j.t1||Infinity} }
+      const trig={trig:1,name:`${run.event} · ${run.head_sha.slice(0,7)}`,status:'success',steps:[{n:run.head_branch,s:'success'},{n:(run.display_title||'').slice(0,40),s:'success'}]};
+      S={t0:Date.parse(run.run_started_at||run.created_at),stages:[[trig],...stages]};
+      $('msg').textContent=`${repo} · ${run.name} #${run.run_number} · ${run.head_branch} · ${run.status}`; draw();
+      if(run.status==='completed') return log('Run '+run.conclusion,run.conclusion==='success'?'ok':'bad');
+    }catch(e){ $('msg').textContent=e.message; return; }
+    await sleep(8000);
+  }
+};
+$('demo').click();
+</script>
